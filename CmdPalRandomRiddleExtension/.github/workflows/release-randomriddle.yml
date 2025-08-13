@@ -1,0 +1,85 @@
+name: Publish Random Riddle Extension
+
+on:
+  push:
+    tags:
+      - riddles/v*
+
+jobs:
+  build_sign_release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+      packages: write
+
+    env:
+      project: CmdPalRandomRiddleExtension
+      packageName: JessicaEarleyCha.RandomRiddleForCmdPal
+      tagPrefix: riddles/v
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Update Version in Manifest
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".Replace("${{ env.tagPrefix }}", "")
+          $xmlPath = "${{ env.project }}/Package.appxmanifest"
+          [xml]$xml = Get-Content $xmlPath
+          $xml.Package.Identity.Version = $version
+          $xml.Save($xmlPath)
+          Write-Output "Version updated to $version in $xmlPath"
+
+      - name: Build and Generate .msix
+        run: dotnet build ${{ env.project }} /p:Configuration=Release /p:GenerateAppxPackageOnBuild=true /p:Platform=x64
+
+      - name: Collect .msix Files
+        shell: pwsh
+        run: |
+          $msixs = Get-ChildItem -Path "${{ github.workspace }}" -Recurse -File -Filter *.msix | Where-Object { $_.Name -notmatch "WindowsAppRuntime" }
+          $dest = "${{ github.workspace }}/signed"
+          Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $dest
+          New-Item -ItemType Directory -Path $dest | Out-Null
+          foreach ($msix in $msixs) {
+            Copy-Item -Path $msix.FullName -Destination $dest
+          }
+
+      - name: Sign .msix Files
+        uses: azure/trusted-signing-action@v1
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: eus.codesigning.azure.net
+          trusted-signing-account-name: baldbeardedbuilder
+          certificate-profile-name: default
+          files-folder: '${{ github.workspace }}/signed'
+          filter: '*.msix'
+          digest: SHA256
+          timestamp-rfc3161: true
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: '${{ github.workspace }}/signed/*.msix'
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          allowUpdates: true
+          draft: false
+          prerelease: false
+
+      - name: Update Winget Manifest
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $tagPrefix = "${{ env.tagPrefix }}"
+          $version = $tag.Replace($tagPrefix, "")
+          $release = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
+          $installerUrl = $release.assets | Where-Object { $_.name -match 'x64' } | Select-Object -First 1 -ExpandProperty browser_download_url
+          wingetcreate update ${{ env.packageName }} -s $version -u $installerUrl --submit
