@@ -4,13 +4,14 @@
 
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
-using System.Net.Http.Headers;
-using System.Text.Json;
 using System;
-using System.Threading.Tasks;
-using System.Net.Http;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Resources;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace CmdPalRandomRiddleExtension;
 
@@ -23,25 +24,50 @@ internal sealed partial class CmdPalRandomRiddleExtensionPage : ContentPage
     public CmdPalRandomRiddleExtensionPage()
     {
         Icon = new("\uF142"); //❓
-        Title = "Random Riddle";
-        Name = "Get a riddle"; 
+        Title = "Your Random Riddle";
+
+        _currentRiddle ??= GetRiddleAsync().GetAwaiter().GetResult();
+
+        var Riddle = _currentRiddle;
+
+        ConfirmationArgs confirmArgs = new()
+        {
+            PrimaryCommand = new AnonymousCommand(
+                () => { _currentRiddle = null; RaiseItemsChanged(); })
+            {
+                Name = "Done",
+                Result = CommandResult.GoHome(),
+            },
+            Title = "Answer",
+            Description = Riddle.Answer,
+        };
+
+        Commands = [
+            new CommandContextItem(
+            title: "Do thing",
+            name: "Press Enter for answer",
+            result: CommandResult.Confirm(confirmArgs),
+            action: () => { _currentRiddle = null; })
+        ];
+
     }
     public override IContent[] GetContent()
     {
-        this.IsLoading = true;
+        // If _currentRiddle is null, fetch a new one synchronously
+        if (_currentRiddle == null)
+        {
+            _currentRiddle = GetRiddleAsync().GetAwaiter().GetResult();
+        }
 
-        // Only fetch a new riddle if we don't have one cached
-        _currentRiddle ??= GetRiddleAsync().GetAwaiter().GetResult();
-
-        this.IsLoading = false;
-
-        var Riddle = _currentRiddle; 
+        var Riddle = _currentRiddle;
 
         ConfirmationArgs confirmArgs = new()
         {
             PrimaryCommand = new AnonymousCommand(
                 () =>
                 {
+                    _currentRiddle = null;
+                    RaiseItemsChanged();
                 })
             {
                 Name = "Done",
@@ -57,8 +83,11 @@ internal sealed partial class CmdPalRandomRiddleExtensionPage : ContentPage
                 title: "Do thing",
                 name: "Press Enter for answer",
                 result: CommandResult.Confirm(confirmArgs),
-                action: () => { _currentRiddle = null;}),
+                action: () => { 
+                    _currentRiddle = null;
+                }),
         ];
+
 
         return [
             new MarkdownContent($"{Riddle.Text}"),
@@ -101,7 +130,7 @@ internal sealed partial class CmdPalRandomRiddleExtensionPage : ContentPage
         }
         catch (Exception e)
         {
-            Console.WriteLine($"An error occurred: {e.Message}");
+            Debug.WriteLine($"An error occurred: {e.Message}");
             return new Riddle()
             {
                 Text = "An error occurred while fetching the riddle. Please try again later.",
