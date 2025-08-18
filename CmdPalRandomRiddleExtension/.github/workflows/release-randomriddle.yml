@@ -38,7 +38,19 @@ jobs:
           Write-Output "Version updated to $version in $xmlPath"
 
       - name: Build and Generate .msix
-        run: dotnet build ${{ env.project }} /p:Configuration=Release /p:GenerateAppxPackageOnBuild=true /p:Platform=x64
+        run: dotnet publish ${{ env.project }} -c Release -f net9.0-windows10.0.22621.0 -r win-x64 /p:Platform=x64 /p:GenerateAppxPackageOnBuild=true /p:AppxBundlePlatforms=x64
+
+      - name: Debug - List all files
+        shell: pwsh
+        run: |
+          Write-Output "=== All .msix files in workspace ==="
+          Get-ChildItem -Path "${{ github.workspace }}" -Recurse -File -Filter *.msix | ForEach-Object { Write-Output $_.FullName }
+          Write-Output "=== AppPackages folder contents ==="
+          $appPackages = Get-ChildItem -Path "${{ github.workspace }}" -Recurse -Directory -Filter "*AppPackages*"
+          foreach ($dir in $appPackages) {
+            Write-Output "Directory: $($dir.FullName)"
+            Get-ChildItem -Path $dir.FullName -Recurse | ForEach-Object { Write-Output "  $($_.FullName)" }
+          }
 
       - name: Collect .msix Files
         shell: pwsh
