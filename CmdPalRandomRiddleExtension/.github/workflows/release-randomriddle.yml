@@ -37,8 +37,12 @@ jobs:
           $xml.Save($xmlPath)
           Write-Output "Version updated to $version in $xmlPath"
 
+      - name: Restore NuGet packages
+        run: dotnet restore ${{ env.project }}
+
       - name: Build and Generate .msix
-        run: dotnet publish ${{ env.project }} -c Release -f net9.0-windows10.0.22621.0 -r win-x64 /p:Platform=x64 /p:GenerateAppxPackageOnBuild=true /p:AppxBundlePlatforms=x64
+        run: |
+          dotnet build ${{ env.project }} -c Release -f net9.0-windows10.0.22621.0 /p:Platform=x64 /p:RuntimeIdentifier=win-x64 /p:GenerateAppxPackageOnBuild=true /p:AppxPackageSigningEnabled=false
 
       - name: Debug - List all files
         shell: pwsh
@@ -55,16 +59,28 @@ jobs:
       - name: Collect .msix Files
         shell: pwsh
         run: |
+          Write-Output "=== Searching for MSIX files ==="
           $msixs = Get-ChildItem -Path "${{ github.workspace }}" -Recurse -File -Filter *.msix | Where-Object { $_.Name -notmatch "WindowsAppRuntime" }
+          
+          if ($msixs.Count -eq 0) {
+            Write-Output "ERROR: No .msix files found!"
+            Write-Output "=== Searching for any package files ==="
+            Get-ChildItem -Path "${{ github.workspace }}" -Recurse -File | Where-Object { $_.Extension -in @('.msix', '.appx', '.msixbundle', '.appxbundle') } | ForEach-Object { Write-Output "Found: $($_.FullName)" }
+            exit 1
+          }
+          
           $dest = "${{ github.workspace }}/signed"
           Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $dest
           New-Item -ItemType Directory -Path $dest | Out-Null
+          
           foreach ($msix in $msixs) {
+            Write-Output "Copying: $($msix.FullName) -> $dest"
             Copy-Item -Path $msix.FullName -Destination $dest
           }
 
       - name: Sign .msix Files
         uses: azure/trusted-signing-action@v1
+        if: ${{ hashFiles('signed/*.msix') != '' }}
         with:
           azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -80,7 +96,7 @@ jobs:
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: '${{ github.workspace }}/signed/*.msix'
+          artifacts: '${{ github.workspace }}/signed/*'
           tag: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           allowUpdates: true
