@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'riddles/v*.*.*'
+      # Add more tag patterns here for future extensions
+      # - 'jokes/v*.*.*'
+      # - 'quotes/v*.*.*'
 
 env:
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
@@ -28,6 +31,11 @@ jobs:
             echo "project-path=CmdPalRandomRiddleExtension" >> $GITHUB_OUTPUT
             echo "package-name=JessicaEarleyCha.RandomRiddleForCmdPal" >> $GITHUB_OUTPUT
             echo "tag-prefix=riddles/v" >> $GITHUB_OUTPUT
+          # elif [[ $tag == jokes/v* ]]; then
+          #   echo "project-name=CmdPalRandomJokeExtension" >> $GITHUB_OUTPUT
+          #   echo "project-path=CmdPalRandomJokeExtension" >> $GITHUB_OUTPUT
+          #   echo "package-name=JessicaEarleyCha.RandomJokeForCmdPal" >> $GITHUB_OUTPUT
+          #   echo "tag-prefix=jokes/v" >> $GITHUB_OUTPUT
           else
             echo "Unknown tag pattern: $tag"
             exit 1
@@ -64,6 +72,7 @@ jobs:
           Write-Output "Version updated to $version in $xmlFilePath"
               
       - name: Build
+        working-directory: "./${{ env.projectPath }}"
         run: |
           dotnet build --configuration Release -p:GenerateAppxPackageOnBuild=true -p:Platform=x64
           
@@ -76,8 +85,7 @@ jobs:
           # write the path of each msix (relative to the git root)
           Write-Host "Found the following msix's:"
           foreach($msix in $msixs) {
-              Write-Host "*" $msix.Name "
-"
+              Write-Host "*" $msix.Name "`n"
           }
 
           $DestinationFolder = Join-Path $Env:GITHUB_WORKSPACE "tmp"
@@ -127,9 +135,9 @@ jobs:
     steps:
       - name: Submit extensions to Winget
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           packageName: ${{ needs.determine-project.outputs.package-name }}
           tagPrefix: ${{ needs.determine-project.outputs.tag-prefix }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $wingetPackage = $Env:packageName
           $gitToken = $Env:GITHUB_TOKEN
