@@ -26,21 +26,40 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
+      - name: Debug - Check workspace structure
+        run: |
+          Write-Host "GitHub Workspace: $Env:GITHUB_WORKSPACE"
+          Write-Host "Current directory: $(Get-Location)"
+          Write-Host "Directory contents:"
+          Get-ChildItem -Name
+          Write-Host "Looking for launchSettings.json in various locations:"
+          
+          $paths = @(
+            "CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension/Properties/launchSettings.json",
+            "./CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension/Properties/launchSettings.json"
+          )
+          
+          foreach($path in $paths) {
+            if (Test-Path $path) {
+              Write-Host "✅ Found at: $path"
+            } else {
+              Write-Host "❌ Not found at: $path"
+            }
+          }
+
       - name: Update Version in manifest
-        working-directory: "./CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension"
         run: |
           $version = "${{ github.ref_name }}.0" -replace '^${{ env.tag_prefix }}', ''
           
-          $xmlFilePath = "Package.appxmanifest"
+          $xmlFilePath = "CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension/Package.appxmanifest"
           [xml]$xml = Get-Content $xmlFilePath
           $xml.Package.Identity.Version = $version
           $xml.Save($xmlFilePath)
           Write-Output "Version updated to $version in $xmlFilePath"
               
       - name: Build
-        working-directory: "./CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension"
         run: |
-          dotnet publish --configuration Release --runtime win-x64 --self-contained true -p:GenerateAppxPackageOnBuild=true -p:Platform=x64
+          dotnet publish CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension.sln --configuration Release --runtime win-x64 --self-contained true -p:GenerateAppxPackageOnBuild=true -p:Platform=x64 -p:TreatWarningsAsErrors=false
           
       - name: Debug - List generated files
         run: |
