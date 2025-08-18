@@ -1,21 +1,48 @@
-name: Publish Random Riddle Extension
+﻿name: Release Command Palette Extensions
 
 on:
   push:
     tags:
-      - riddles/v*
+      - 'riddles/v*'
+      # Add more tag patterns for future extensions
 
 jobs:
-  build_sign_release:
+  determine-project:
+    runs-on: ubuntu-latest
+    outputs:
+      project-name: ${{ steps.determine.outputs.project-name }}
+      project-path: ${{ steps.determine.outputs.project-path }}
+      package-name: ${{ steps.determine.outputs.package-name }}
+      tag-prefix: ${{ steps.determine.outputs.tag-prefix }}
+    steps:
+      - name: Determine project from tag
+        id: determine
+        run: |
+          tag="${{ github.ref_name }}"
+          echo "Processing tag: $tag"
+          
+          if [[ $tag == riddles/v* ]]; then
+            echo "project-name=CmdPalRandomRiddleExtension" >> $GITHUB_OUTPUT
+            echo "project-path=CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension" >> $GITHUB_OUTPUT
+            echo "package-name=JessicaEarleyCha.RandomRiddleForCmdPal" >> $GITHUB_OUTPUT
+            echo "tag-prefix=riddles/v" >> $GITHUB_OUTPUT
+          else
+            echo "Unknown tag pattern: $tag"
+            exit 1
+          fi
+
+  build-and-release:
+    needs: determine-project
     runs-on: windows-latest
     permissions:
       contents: write
       packages: write
 
     env:
-      project: CmdPalRandomRiddleExtension
-      packageName: JessicaEarleyCha.RandomRiddleForCmdPal
-      tagPrefix: riddles/v
+      project: ${{ needs.determine-project.outputs.project-name }}
+      projectPath: ${{ needs.determine-project.outputs.project-path }}
+      packageName: ${{ needs.determine-project.outputs.package-name }}
+      tagPrefix: ${{ needs.determine-project.outputs.tag-prefix }}
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
 
     steps:
@@ -31,18 +58,24 @@ jobs:
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}".Replace("${{ env.tagPrefix }}", "")
-          $xmlPath = "${{ env.project }}/Package.appxmanifest"
+          $xmlPath = "${{ env.projectPath }}/Package.appxmanifest"
+          
+          if (-not (Test-Path $xmlPath)) {
+            Write-Output "ERROR: Manifest file not found at $xmlPath"
+            exit 1
+          }
+          
           [xml]$xml = Get-Content $xmlPath
           $xml.Package.Identity.Version = $version
           $xml.Save($xmlPath)
           Write-Output "Version updated to $version in $xmlPath"
 
       - name: Restore NuGet packages
-        run: dotnet restore ${{ env.project }}
+        run: dotnet restore ${{ env.projectPath }}
 
       - name: Build and Generate .msix
         run: |
-          dotnet build ${{ env.project }} -c Release -f net9.0-windows10.0.22621.0 /p:Platform=x64 /p:RuntimeIdentifier=win-x64 /p:GenerateAppxPackageOnBuild=true /p:AppxPackageSigningEnabled=false
+          dotnet build ${{ env.projectPath }} -c Release -f net9.0-windows10.0.22621.0 /p:Platform=x64 /p:RuntimeIdentifier=win-x64 /p:GenerateAppxPackageOnBuild=true /p:AppxPackageSigningEnabled=false
 
       - name: Debug - List all files
         shell: pwsh
@@ -59,7 +92,7 @@ jobs:
       - name: Collect .msix Files
         shell: pwsh
         run: |
-          Write-Output "=== Searching for MSIX files ==="
+          Write-Output "=== Searching for MSIX files for ${{ env.project }} ==="
           $msixs = Get-ChildItem -Path "${{ github.workspace }}" -Recurse -File -Filter *.msix | Where-Object { $_.Name -notmatch "WindowsAppRuntime" }
           
           if ($msixs.Count -eq 0) {
@@ -98,16 +131,29 @@ jobs:
         with:
           artifacts: '${{ github.workspace }}/signed/*'
           tag: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          name: 'Release ${{ env.project }} ${{ github.ref_name }}'
           allowUpdates: true
           draft: false
           prerelease: false
 
       - name: Update Winget Manifest
+        shell: pwsh
         run: |
           $tag = "${{ github.ref_name }}"
           $tagPrefix = "${{ env.tagPrefix }}"
           $version = $tag.Replace($tagPrefix, "")
-          $release = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
-          $installerUrl = $release.assets | Where-Object { $_.name -match 'x64' } | Select-Object -First 1 -ExpandProperty browser_download_url
-          wingetcreate update ${{ env.packageName }} -s $version -u $installerUrl --submit
+          
+          try {
+            $release = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag"
+            $installerUrl = $release.assets | Where-Object { $_.name -match 'x64' } | Select-Object -First 1 -ExpandProperty browser_download_url
+            
+            if ($installerUrl) {
+              Write-Output "Updating winget manifest for ${{ env.packageName }}"
+              wingetcreate update ${{ env.packageName }} -s $version -u $installerUrl --submit
+            } else {
+              Write-Output "No x64 installer found in release assets"
+            }
+          } catch {
+            Write-Output "Failed to update winget manifest: $_"
+            # Don't fail the entire workflow if winget update fails
+          }
