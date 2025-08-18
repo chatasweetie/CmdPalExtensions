@@ -23,4 +23,4 @@ jobs:
 
       - name: Build
         run: |
-          dotnet build CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension.sln --configuration Release -p:GenerateAppxPackageOnBuild=true -p:Platform=x64
+          dotnet publish CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension.sln --configuration Release --runtime win-x64 --self-contained true -p:GenerateAppxPackageOnBuild=true -p:Platform=x64

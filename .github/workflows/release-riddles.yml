@@ -40,7 +40,7 @@ jobs:
       - name: Build
         working-directory: "./CmdPalRandomRiddleExtension"
         run: |
-          dotnet build CmdPalRandomRiddleExtension.sln --configuration Release -p:GenerateAppxPackageOnBuild=true -p:Platform=x64
+          dotnet publish CmdPalRandomRiddleExtension.sln --configuration Release --runtime win-x64 --self-contained true -p:GenerateAppxPackageOnBuild=true -p:Platform=x64
           
       - name: Debug - List generated files
         run: |
