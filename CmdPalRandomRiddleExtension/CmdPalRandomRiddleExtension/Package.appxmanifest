@@ -9,15 +9,13 @@
   IgnorableNamespaces="uap uap3 rescap">
 
   <Identity
-    Name="CmdPalRandomRiddleExtension"
-    Publisher="CN=Jessica Dene Earley-Cha, O=Jessica Dene Earley-Cha, L=Redmond, S=Washington, C=US"
-    Version="0.0.1.0" />
-  <!-- When you're ready to publish your extension, you'll need to change the
-       Publisher= to match your own identity -->
+    Name="JessicaDeneEarley-Cha.CmdPalRandomRiddleExtension"
+    Publisher="CN=16D1F4AB-86B4-4DA3-A0CA-3FD2DBB38A19"
+    Version="0.0.2.0" />
 
   <Properties>
-    <DisplayName>Random Riddle</DisplayName>
-    <PublisherDisplayName>Jessica D Earley-Cha</PublisherDisplayName>
+    <DisplayName>CmdPalRandomRiddleExtension</DisplayName>
+    <PublisherDisplayName>Jessica Dene Earley-Cha</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -35,19 +33,19 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="Random Riddle"
+        DisplayName="CmdPalRandomRiddleExtension"
         Description="Provides a random riddle sourced from riddles-api.vercel.app/random"
         BackgroundColor="transparent"
-        Square150x150Logo="Assets\Square150x150Logo.png"
-        Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
-        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        Square150x150Logo="Assets\Square150x150Logo.scale-200.png"
+        Square44x44Logo="Assets\Square44x44Logo.scale-200.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.scale-200.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.scale-200.png" />
       </uap:VisualElements>
       <Extensions>
         <com:Extension Category="windows.comServer">
           <com:ComServer>
-            <com:ExeServer Executable="CmdPalRandomRiddleExtension.exe" Arguments="-RegisterProcessAsComServer" DisplayName="Random Riddle">
-              <com:Class Id="a12abc99-3f75-4056-b2e1-7e8bf2705649" DisplayName="Random Riddle" />
+            <com:ExeServer Executable="CmdPalRandomRiddleExtension.exe" Arguments="-RegisterProcessAsComServer" DisplayName="CmdPalRandomRiddleExtension">
+              <com:Class Id="a12abc99-3f75-4056-b2e1-7e8bf2705649" DisplayName="CmdPalRandomRiddleExtension" />
             </com:ExeServer>
           </com:ComServer>
         </com:Extension>
@@ -55,8 +53,8 @@
           <uap3:AppExtension Name="com.microsoft.commandpalette"
             Id="ID"
             PublicFolder="Public"
-            DisplayName="Random Riddle"
-            Description="Random Riddle">
+            DisplayName="CmdPalRandomRiddleExtension"
+            Description="CmdPalRandomRiddleExtension">
             <uap3:Properties>
               <CmdPalProvider>
                 <Activation>

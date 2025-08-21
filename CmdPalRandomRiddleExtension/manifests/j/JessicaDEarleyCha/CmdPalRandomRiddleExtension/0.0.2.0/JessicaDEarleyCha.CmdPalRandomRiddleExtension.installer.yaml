@@ -1,0 +1,24 @@
+# Created with YamlCreate.exe v2.4.1 Dumplings Mod v0.6.5
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+
+PackageIdentifier: JessicaDEarleyCha.CmdPalRandomRiddleExtension
+PackageVersion: 0.0.2.0
+MinimumOSVersion: 10.0.19041.0
+InstallerType: msix
+Scope: user
+InstallModes:
+- interactive
+- silent
+UpgradeBehavior: install
+PackageFamilyName: JessicaDeneEarley-Cha.CmdPalRandomRiddleExtension_d5hz9k63v5at4
+Dependencies:
+  PackageDependencies:
+  - PackageIdentifier: Microsoft.WindowsAppRuntime.1.6
+    MinimumVersion: 6.0.0.0
+Installers:
+- Architecture: x64
+  InstallerUrl: https://github.com/chatasweetie/CmdPalExtensions/releases/download/v0.0.2.0/CmdPalRandomRiddleExtension_0.0.2.0_x64_store_ready.msix
+  InstallerSha256: 2F1DB2715C9EA6F56773B098E0732B85F5AC09C81926AD0D9206470DE8CAD3E6
+  SignatureSha256: 2F1DB2715C9EA6F56773B098E0732B85F5AC09C81926AD0D9206470DE8CAD3E6
+ManifestType: installer
+ManifestVersion: 1.6.0

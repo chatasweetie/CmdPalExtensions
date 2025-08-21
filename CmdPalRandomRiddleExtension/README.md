@@ -1,4 +1,4 @@
-# CmdPalRandomRiddleExtension
+# Random Riddle for Command Palette
 
 A simple [Command Palette extension](https://learn.microsoft.com/en-us/windows/powertoys/command-palette/extensibility-overview) for .NET 9 that fetches and displays a random riddle, allowing users to reveal the answer interactively.
 
@@ -6,38 +6,50 @@ A simple [Command Palette extension](https://learn.microsoft.com/en-us/windows/p
 
 ## Features
 
-- Fetches a random riddle from an online API.
-- Displays the riddle in the command palette.
-- Lets the user reveal the answer by pressing Enter.
-- Fetches a new riddle each time the user requests the answer.
+• Fetches a random riddle from an online API
+• Displays riddles in the Command Palette interface  
+• Interactive answer reveal with Enter key
+• Fresh riddle with each new request
+• Clean, distraction-free riddle experience
+
+## Installation
+
+> **Note:** This extension requires [Microsoft PowerToys](https://apps.microsoft.com/detail/xp89dcgq3k6vld) to be installed.
+
+### Microsoft Store installation (recommended)
+
+[Get it from Microsoft Store](https://apps.microsoft.com/detail/9ppntdcd5s8z)
+
+<!-- ### Alternative installation methods
+
+**Via Winget:**
+
+```powershell
+winget install JessicaDEarleyCha.CmdPalRandomRiddleExtension
+```
+
+**Manual MSIX installation:**
+
+1. Download the latest MSIX package from [Releases](https://github.com/chatasweetie/CmdPalExtensions/releases)
+2. Right-click the MSIX file and select "Install"
+3. Follow the installation prompts -->
 
 ## How It Works
 
-1. Initialization
-When the extension page is created, it sets up the icon, title, and name for the command palette entry.
-2. Fetching a Riddle:
-   - The first time the page is shown, it fetches a random riddle  from riddles-api.vercel.app using HttpClient.
-   - The riddle and its answer are cached in a private field (_currentRiddle) to ensure consistency between the displayed riddle and the answer dialog.
-3. Displaying the Riddle
-   - The riddle text is shown as Markdown content in the command palette.
-   - The user is prompted to "Press Enter for the answer".
-4. Revealing the Answer
-   - When the user presses Enter (selects the command), a confirmation dialog is shown with the riddle's answer.
-   - After the answer is shown, the cached riddle is cleared, so the next time the user interacts, a new riddle is fetched.
+1. **Initialization:** Extension sets up the icon, title, and name for the command palette entry
+2. **Fetching a Riddle:** First activation fetches a random riddle from [riddles-api.vercel.app](https://riddles-api.vercel.app/) using HttpClient
+3. **Displaying the Riddle:** Riddle text is shown as Markdown content with "Press Enter for the answer" prompt
+4. **Revealing the Answer:** Pressing Enter shows a confirmation dialog with the riddle's answer
+5. **New Riddle:** After viewing an answer, the next activation fetches a fresh riddle
 
 ## API
 
-This extension uses the following public API to fetch riddles: https://riddles-api.vercel.app/ 
+This extension uses the public API: <https://riddles-api.vercel.app/>
 
 ## Code Structure
 
-- **CmdPalRandomRiddleExtensionPage.cs** : Main logic for fetching, displaying, and interacting with riddles.
-- **Riddle.cs**: Data model for the riddle and answer.
-
-## How to get it Random Riddle in Command Palette
-
-1.
-2.
+- **CmdPalRandomRiddleExtensionPage.cs:** Main logic for fetching, displaying, and interacting with riddles
+- **Riddle.cs:** Data model for the riddle and answer
 
 ## Dependencies
 
@@ -48,9 +60,13 @@ This extension uses the following public API to fetch riddles: https://riddles-a
 
 ## Customization
 
-- To change the riddle source, update the API URL in GetRiddleAsync().
-- To add more commands or actions, modify the Commands array in GetContent().
+- To change the riddle source, update the API URL in `GetRiddleAsync()`
+- To add more commands or actions, modify the Commands array in `GetContent()`
 
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Author
+
+[Jessica Dene Earley-Cha](https://github.com/chatasweetie)

@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# chatasweetie specific additions
+src\
+
 # User-specific files
 *.suo
 *.user

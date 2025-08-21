@@ -13,16 +13,36 @@
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
+    
+    <!-- Microsoft Store Identity Properties -->
+    <ApplicationDisplayName>CmdPal Random Riddle Extension</ApplicationDisplayName>
+    <PackageDisplayName>CmdPal Random Riddle Extension</PackageDisplayName>
+    <ApplicationDescription>Provides a random riddle sourced from riddles-api.vercel.app/random</ApplicationDescription>
+    <PublisherDisplayName>Jessica Dene Earley-Cha</PublisherDisplayName>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Assets\SplashScreen.scale-200.png" />
-    <Content Include="Assets\LockScreenLogo.scale-200.png" />
-    <Content Include="Assets\Square150x150Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
-    <Content Include="Assets\StoreLogo.png" />
-    <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="Assets\SplashScreen.scale-200.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\LockScreenLogo.scale-200.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Square150x150Logo.scale-200.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Square44x44Logo.scale-200.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\StoreLogo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Wide310x150Logo.scale-200.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -63,15 +83,23 @@
     <WarningsNotAsErrors>IL2081</WarningsNotAsErrors>
 
     <PublishTrimmed>true</PublishTrimmed>
-    <PublishSingleFile>false</PublishSingleFile>
+    <PublishSingleFile>false</PublishSingleFile> <!-- Keeps your app as multiple files instead of bundling into one executable, Needed for MSIX packaging - single-file apps don't work well with MSIX -->
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
-    <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
-    <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
-    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled> <!-- Disables automatic code signing during build, Microsoft Store will sign your package when you submit it -->
+    <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm> <!-- Sets timestamp algorithm for signing (even though signing is disabled) Standard security practice -->
+    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision> <!-- Automatically increments the revision number on each build, Helps with versioning during development -->
     <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
-    <GenerateTestArtifacts>True</GenerateTestArtifacts>
+    <GenerateTestArtifacts>True</GenerateTestArtifacts> <!-- Generates files needed for testing the MSIX package, Useful for validation before Store submission -->
     <AppxBundle>Never</AppxBundle>
-    <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
-    <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate> <!-- Creates a temporary certificate for local testing, Allows you to install/test the MSIX locally before Store submission -->
+    <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks> <!-- Disables automatic update checking, Updates will be handled by Microsoft Store-->
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    
+    <!-- Microsoft Store Package Identity -->
+    <AppxPackageIdentityName>JessicaDeneEarley-Cha.CmdPalRandomRiddleExtension</AppxPackageIdentityName>
+    <AppxPackagePublisher>CN=16D1F4AB-86B4-4DA3-A0CA-3FD2DBB38A19</AppxPackagePublisher>
+    <AppxPackageVersion>0.0.2.0</AppxPackageVersion>
   </PropertyGroup>
 </Project>

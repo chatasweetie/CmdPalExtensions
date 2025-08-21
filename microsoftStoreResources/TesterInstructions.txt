@@ -1,0 +1,88 @@
+# Random Riddle Command Palette Extension - Testing Instructions
+
+## Prerequisites
+
+### System Requirements
+- Windows 11 or Windows 10 version 2004 (build 19041) or newer
+- x64 or ARM64 processor
+- Internet connection for riddle fetching
+
+### Required Software
+1. **PowerToys with Command Palette**
+   - Install from Microsoft Store: https://apps.microsoft.com/detail/xp89dcgq3k6vld
+   - Includes Microsoft Edge WebView2 Runtime
+   - Available for both Windows 11 and Windows 10
+
+## Installation Steps
+
+### Step 1: Install PowerToys
+1. Open Microsoft Store
+2. Search for "PowerToys" or use the direct link above
+3. Click "Get" or "Install"
+4. Wait for installation to complete
+
+### Step 2: Install Random Riddle Extension
+1. Download the MSIX package: `CmdPalRandomRiddleExtension_0.0.2.0_x64_store_ready.msix`
+2. Right-click the MSIX file
+3. Select "Install" from the context menu
+4. Follow the installation prompts
+5. The extension will automatically register with Command Palette
+
+### Step 3: Activate Command Palette
+1. Open PowerToys
+2. Navigate to Command Palette tool
+3. Enable Command Palette if not already active
+4. Set your preferred hotkey (default: Ctrl + Shift + P)
+
+## Testing the Extension
+
+### Basic Functionality Test
+1. Press your Command Palette hotkey (Ctrl + Shift + P)
+2. In the search box, type "Reload"
+3. Select "Reload, Reload Command Palette extensions" and press Enter
+4. Type "Random Riddle" in the search box
+5. Select the Random Riddle extension and press Enter
+6. Verify a riddle appears in the interface
+7. Press Enter again to reveal the answer
+8. Confirm the answer dialog displays correctly
+
+### Expected Behavior
+- Extension should fetch a random riddle from the internet
+- Riddle text should display clearly in the Command Palette
+- Pressing Enter should show the answer in a popup dialog
+- Each new activation should fetch a different riddle
+
+## Troubleshooting
+
+### Extension Not Appearing
+- Restart PowerToys
+- Reload Command Palette extensions (Step 3 in testing)
+- Verify the MSIX package installed successfully in Windows Settings > Apps
+
+### No Riddles Loading
+- Check internet connection
+- Ensure access to https://riddles-api.vercel.app/
+- Try again after a few moments
+
+### Installation Issues
+- Run as Administrator when installing MSIX
+- Ensure Windows is up to date
+- Check Windows Event Viewer for detailed error messages
+
+## What to Test
+
+1. **Installation Process**: Smooth MSIX installation
+2. **Extension Discovery**: Appears in Command Palette after reload
+3. **Riddle Fetching**: Successfully retrieves riddles from API
+4. **Answer Reveal**: Answer dialog functions correctly
+5. **Multiple Uses**: Each activation provides new riddles
+6. **Error Handling**: Graceful handling of network issues
+
+## Reporting Issues
+
+If you encounter problems, please report:
+- Windows version and build number
+- PowerToys version
+- Exact error messages
+- Steps to reproduce the issue
+- Screenshots if applicable

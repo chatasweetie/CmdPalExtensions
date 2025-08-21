@@ -1,0 +1,28 @@
+# Created with YamlCreate.exe v2.4.1 Dumplings Mod v0.6.5
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+
+PackageIdentifier: JessicaDEarleyCha.CmdPalRandomRiddleExtension
+PackageVersion: 0.0.2.0
+PackageLocale: en-US
+Publisher: Jessica D Earley-Cha
+PublisherUrl: https://github.com/chatasweetie
+PublisherSupportUrl: https://github.com/chatasweetie/CmdPalExtensions/issues
+Author: Jessica D Earley-Cha
+PackageName: Random Riddle
+PackageUrl: https://github.com/chatasweetie/CmdPalExtensions
+License: MIT
+LicenseUrl: https://github.com/chatasweetie/CmdPalExtensions/blob/main/LICENSE
+ShortDescription: A Command Palette extension that provides random riddles
+Description: A simple Command Palette extension for .NET 9 that fetches and displays a random riddle, allowing users to reveal the answer interactively. Riddles are sourced from riddles-api.vercel.app.
+Moniker: random-riddle
+Tags:
+- windows-commandpalette-extension
+- riddle
+- game
+- entertainment
+- command-palette
+- powertoys
+ReleaseNotes: Initial release of the Random Riddle Command Palette extension
+ReleaseNotesUrl: https://github.com/chatasweetie/CmdPalExtensions/releases/tag/v0.0.2.0
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0
