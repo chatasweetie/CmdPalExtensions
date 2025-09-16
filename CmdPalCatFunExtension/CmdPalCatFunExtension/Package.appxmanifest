@@ -11,13 +11,13 @@
   <Identity
     Name="CmdPalCatFunExtension"
     Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
-    Version="0.0.1.0" />
-  <!-- When you're ready to publish your extension, you'll need to change the
-       Publisher= to match your own identity -->
+    Version="1.0.0.0" />
+  <!-- When you're ready to publish your extension, use Visual Studio: Project > Store > Associate App with the Store
+       This will update the Identity Publisher to the Store-assigned publisher value and ensure the package identity matches Partner Center. -->
 
   <Properties>
     <DisplayName>Cat Fun</DisplayName>
-    <PublisherDisplayName>A Lone Developer</PublisherDisplayName>
+    <PublisherDisplayName>Jessica Dene Earley-Cha</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 

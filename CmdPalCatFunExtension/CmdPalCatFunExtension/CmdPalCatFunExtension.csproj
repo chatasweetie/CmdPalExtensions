@@ -16,13 +16,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Assets\SplashScreen.scale-200.png" />
-    <Content Include="Assets\LockScreenLogo.scale-200.png" />
-    <Content Include="Assets\Square150x150Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
-    <Content Include="Assets\StoreLogo.png" />
-    <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="Assets\Square44x44Logo.svg" />
+    <Content Include="Assets\Square150x150Logo.svg" />
+    <Content Include="Assets\Wide310x150Logo.svg" />
+    <Content Include="Assets\SplashScreen.svg" />
+    <Content Include="Assets\StoreLogo.svg" />
+    <Content Include="Assets\LockScreenLogo.svg" />
+    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.svg" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="150" height="150">
+  <rect width="150" height="150" rx="20" fill="#FFF7ED"/>
+  <!-- Consistent orange cat motif (scaled) -->
+  <g transform="translate(18,18)">
+    <ellipse cx="55" cy="55" rx="55" ry="55" fill="#FF9E3B"/>
+    <polygon points="10,26 28,-18 48,26" fill="#FF9E3B"/>
+    <polygon points="102,26 84,-18 64,26" fill="#FF9E3B"/>
+    <ellipse cx="40" cy="55" rx="8" ry="11" fill="#000"/>
+    <ellipse cx="70" cy="55" rx="8" ry="11" fill="#000"/>
+    <circle cx="55" cy="75" r="4" fill="#E65E2A"/>
+    <path d="M50 80 q5 6 10 0" stroke="#6A2D0C" stroke-width="1.5" fill="none"/>
+    <path d="M18 64 h-18" stroke="#6A2D0C" stroke-width="1.2"/>
+    <path d="M18 74 h-18" stroke="#6A2D0C" stroke-width="1.2"/>
+    <path d="M92 64 h18" stroke="#6A2D0C" stroke-width="1.2"/>
+    <path d="M92 74 h18" stroke="#6A2D0C" stroke-width="1.2"/>
+  </g>
+</svg>
