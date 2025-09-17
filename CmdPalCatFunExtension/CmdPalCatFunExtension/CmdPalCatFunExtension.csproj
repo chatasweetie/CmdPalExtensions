@@ -13,16 +13,20 @@
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
-  </PropertyGroup>
 
+    <!-- Microsoft Store Identity Properties -->
+    <ApplicationDisplayName>CmdPalCatFunExtension</ApplicationDisplayName>
+    <PackageDisplayName>CmdPalCatFunExtension</PackageDisplayName>
+    <ApplicationDescription>Provides a random cat fact sourced from catfact.ninja</ApplicationDescription>
+    <PublisherDisplayName>Jessica Dene Earley-Cha</PublisherDisplayName>
+    <!-- Microsoft Store Package Identity -->
+    <AppxPackageIdentityName>JessicaDeneEarley-Cha.CmdPalCatFunExtension</AppxPackageIdentityName>
+    <AppxPackagePublisher>CN=16D1F4AB-86B4-4DA3-A0CA-3FD2DBB38A19</AppxPackagePublisher>
+    <AppxPackageVersion>0.0.2.0</AppxPackageVersion>
+
+  </PropertyGroup>
   <ItemGroup>
-    <Content Include="Assets\Square44x44Logo.svg" />
-    <Content Include="Assets\Square150x150Logo.svg" />
-    <Content Include="Assets\Wide310x150Logo.svg" />
-    <Content Include="Assets\SplashScreen.svg" />
-    <Content Include="Assets\StoreLogo.svg" />
-    <Content Include="Assets\LockScreenLogo.svg" />
-    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.svg" />
+    <Content Include="Assets\*.png" />
   </ItemGroup>
 
   <ItemGroup>

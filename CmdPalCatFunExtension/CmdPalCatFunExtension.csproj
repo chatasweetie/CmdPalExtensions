@@ -1,0 +1,65 @@
+<PropertyGroup Condition="'$(Configuration)'!='Debug'">
+    <!-- In Release builds, trimming is enabled by default. 
+         feel free to disable this if needed -->
+    <PublishTrimmed>true</PublishTrimmed>
+    
+    <AppxPackageIdentityName>JessicaDeneEarley-Cha.CmdPalCatFunExtension</AppxPackageIdentityName>
+    <AppxPackagePublisher>CN=16D1F4AB-86B4-4DA3-A0CA-3FD2DBB38A19</AppxPackagePublisher>
+    <AppxPackageVersion>0.0.2.0</AppxPackageVersion>
+  </PropertyGroup>
+
+<PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>CmdPalCatFunExtension</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <WindowsSdkPackageVersion>10.0.22621.57</WindowsSdkPackageVersion>
+    <TargetFramework>net9.0-windows10.0.22621.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+
+    <PublishProfile>win-$(Platform).pubxml</PublishProfile>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+<PropertyGroup>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IsAotCompatible>true</IsAotCompatible>
+
+    <CsWinRTAotOptimizerEnabled>true</CsWinRTAotOptimizerEnabled>
+    <CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>
+    <!-- Suppress DynamicallyAccessedMemberTypes.PublicParameterlessConstructor in fallback code path of Windows SDK projection -->
+    <WarningsNotAsErrors>IL2081;$(WarningsNotAsErrors)</WarningsNotAsErrors>
+
+    <!-- When publishing trimmed, make sure to treat trimming warnings as build errors -->
+    <ILLinkTreatWarningsAsErrors>true</ILLinkTreatWarningsAsErrors>
+
+  </PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <!-- In Debug builds, trimming is disabled by default, but all the trim & 
+         AOT warnings are enabled. This gives debug builds a tighter inner loop,
+         while at least warning about future trim violations -->
+    <PublishTrimmed>false</PublishTrimmed>
+    
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+
+  </PropertyGroup>
+
+<ItemGroup>
+    <Content Include="CmdPalCatFunExtension.locale.*.yaml" />
+  </ItemGroup>
+
+<ItemGroup>
+    <Content Include="CmdPalCatFunExtension.installer.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+<ItemGroup>
+    <Content Include="Assets\*.png" />
+  </ItemGroup>
