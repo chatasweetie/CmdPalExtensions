@@ -19,6 +19,24 @@ A collection of Command Palette extensions for Windows that enhance your product
 • Fresh riddle with each activation
 • Clean, distraction-free interface
 
+
+### 🐱 Cat Fun Extension
+
+**Bring bite-sized cat entertainment to your Command Palette.**
+
+- **Description**: Provides random cat facts, photos, and playful puns directly inside the Command Palette. Photos are optionally fetched from TheCatAPI and facts/puns come from a mix of public APIs and bundled phrase lists.
+- **Repository**: [CmdPalCatFunExtension](./CmdPalCatFunExtension/)
+
+**Features:**
+• Show a random cat fact
+• Display a cat photo (TheCatAPI if enabled)
+• Deliver playful cat puns and short phrases
+• Interactive actions to reveal more content or open images
+
+**Notes:**
+- Requires Microsoft PowerToys with Command Palette enabled to use the extension.
+- API usage should follow provider terms and include any required attribution or API keys.
+
 ## Prerequisites
 
 All extensions in this repository require:
