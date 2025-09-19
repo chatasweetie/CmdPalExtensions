@@ -68,7 +68,17 @@ namespace CmdPalCatPetExtension.Services
             new AchievementDef("curious_personality", "Curious Mind", "You own a curious cat.", "🔍"),
             new AchievementDef("affectionate_personality", "Lovable", "You own an affectionate cat.", "❤️"),
             new AchievementDef("silly_personality", "Silly Goose", "You own a silly cat.", "🤪"),
-            new AchievementDef("100_days_owned", "Centennial Friend", "100 days together — what a bond!", "🎉")
+            new AchievementDef("100_days_owned", "Centennial Friend", "100 days together — what a bond!", "🎉"),
+            new AchievementDef("plays_100", "Play Champion", "You've played 100 times with your cat.", "🎖️"),
+            new AchievementDef("plays_200", "Play Master", "You've played 200 times with your cat.", "🏆"),
+            new AchievementDef("feeds_50", "Caregiver", "You've fed your cat 50 times.", "🍛"),
+            new AchievementDef("feeds_30", "Feeder", "You've fed your cat 30 times.", "🥣"),
+            new AchievementDef("happiness_90", "Ecstatic", "Your cat's happiness reached 90.", "😍"),
+            new AchievementDef("all_stats_100", "Purrfect Balance", "Energy, Hunger, Happiness, and Hygiene are all at 100.", "🌟"),
+            new AchievementDef("365_days_owned", "Year Together", "365 days together — a year of friendship!", "🎂"),
+            new AchievementDef("consistent_care", "Consistent Care", "You played with and fed your cat 30+ times each.", "🤝"),
+            new AchievementDef("balanced_80", "Balanced", "Energy, Happiness, and Hygiene are all at least 80.", "⚖️"),
+            new AchievementDef("sleeps_50", "Snooze Master", "Your cat has napped 50 times.", "💤")
         };
 
         public static IReadOnlyList<AchievementDef> GetAll() => _definitions;
@@ -125,24 +135,30 @@ namespace CmdPalCatPetExtension.Services
             if (cat.FeedCount >= 100 && !cat.Achievements.Contains("feeds_100")) if (TryUnlock(cat, "feeds_100") is AchievementDef a5) unlocked.Add(a5);
             if (cat.SleepCount >= 10 && !cat.Achievements.Contains("sleeps_10")) if (TryUnlock(cat, "sleeps_10") is AchievementDef a6) unlocked.Add(a6);
 
-            // thresholds
-            if (cat.Happiness >= 100 && !cat.Achievements.Contains("happy_100")) if (TryUnlock(cat, "happy_100") is AchievementDef a7) unlocked.Add(a7);
+            // Additional counters-based achievements
+            if (cat.PlayCount >= 100 && !cat.Achievements.Contains("plays_100")) if (TryUnlock(cat, "plays_100") is AchievementDef a19) unlocked.Add(a19);
+            if (cat.PlayCount >= 200 && !cat.Achievements.Contains("plays_200")) if (TryUnlock(cat, "plays_200") is AchievementDef a20) unlocked.Add(a20);
+            if (cat.FeedCount >= 50 && !cat.Achievements.Contains("feeds_50")) if (TryUnlock(cat, "feeds_50") is AchievementDef a21) unlocked.Add(a21);
+            if (cat.FeedCount >= 30 && !cat.Achievements.Contains("feeds_30")) if (TryUnlock(cat, "feeds_30") is AchievementDef a22) unlocked.Add(a22);
+            if (cat.SleepCount >= 50 && !cat.Achievements.Contains("sleeps_50")) if (TryUnlock(cat, "sleeps_50") is AchievementDef a23) unlocked.Add(a23);
+
+            // thresholds for happiness and balanced stats
+            if (cat.Happiness >= 90 && !cat.Achievements.Contains("happiness_90")) if (TryUnlock(cat, "happiness_90") is AchievementDef a24) unlocked.Add(a24);
             if (cat.Energy >= 100 && !cat.Achievements.Contains("energy_100")) if (TryUnlock(cat, "energy_100") is AchievementDef a8) unlocked.Add(a8);
             if (cat.Hygiene >= 100 && !cat.Achievements.Contains("hygiene_100")) if (TryUnlock(cat, "hygiene_100") is AchievementDef a9) unlocked.Add(a9);
             if (cat.Happiness >= 80 && !cat.Achievements.Contains("happiness_80")) if (TryUnlock(cat, "happiness_80") is AchievementDef a10) unlocked.Add(a10);
 
-            // personality
-            if (cat.Personality == VirtualCat.CatPersonality.Playful && !cat.Achievements.Contains("playful_personality")) if (TryUnlock(cat, "playful_personality") is AchievementDef a11) unlocked.Add(a11);
-            if (cat.Personality == VirtualCat.CatPersonality.Grumpy && !cat.Achievements.Contains("grumpy_personality")) if (TryUnlock(cat, "grumpy_personality") is AchievementDef a12) unlocked.Add(a12);
-            if (cat.Personality == VirtualCat.CatPersonality.Curious && !cat.Achievements.Contains("curious_personality")) if (TryUnlock(cat, "curious_personality") is AchievementDef a13) unlocked.Add(a13);
-            if (cat.Personality == VirtualCat.CatPersonality.Affectionate && !cat.Achievements.Contains("affectionate_personality")) if (TryUnlock(cat, "affectionate_personality") is AchievementDef a14) unlocked.Add(a14);
-            if (cat.Personality == VirtualCat.CatPersonality.Silly && !cat.Achievements.Contains("silly_personality")) if (TryUnlock(cat, "silly_personality") is AchievementDef a15) unlocked.Add(a15);
+            // Additional composite/combined achievements
+            if (cat.Energy >= 100 && cat.Happiness >= 100 && cat.Hygiene >= 100 && !cat.Achievements.Contains("all_stats_100")) if (TryUnlock(cat, "all_stats_100") is AchievementDef a25) unlocked.Add(a25);
+            if (cat.Energy >= 80 && cat.Happiness >= 80 && cat.Hygiene >= 80 && !cat.Achievements.Contains("balanced_80")) if (TryUnlock(cat, "balanced_80") is AchievementDef a26) unlocked.Add(a26);
+            if (cat.FeedCount >= 30 && cat.PlayCount >= 30 && !cat.Achievements.Contains("consistent_care")) if (TryUnlock(cat, "consistent_care") is AchievementDef a27) unlocked.Add(a27);
 
             // time-based
             var ownedDays = (DateTime.UtcNow - cat.CreatedUtc).TotalDays;
             if (ownedDays >= 7 && !cat.Achievements.Contains("7_days_owned")) if (TryUnlock(cat, "7_days_owned") is AchievementDef a16) unlocked.Add(a16);
             if (ownedDays >= 30 && !cat.Achievements.Contains("30_days_owned")) if (TryUnlock(cat, "30_days_owned") is AchievementDef a17) unlocked.Add(a17);
             if (ownedDays >= 100 && !cat.Achievements.Contains("100_days_owned")) if (TryUnlock(cat, "100_days_owned") is AchievementDef a18) unlocked.Add(a18);
+            if (ownedDays >= 365 && !cat.Achievements.Contains("365_days_owned")) if (TryUnlock(cat, "365_days_owned") is AchievementDef a28) unlocked.Add(a28);
 
             return unlocked;
         }
