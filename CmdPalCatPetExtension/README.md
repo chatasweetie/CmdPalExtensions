@@ -1,69 +1,97 @@
-# Cat Pet — Virtual Cat Pet for Command Palette
+# Cat Pet — Virtual Cat for the Command Palette
 
-A playful virtual cat pet built as a Command Palette extension for .NET 9. Users can adopt a cat, play with it, feed it, and put it to bed — all from the Command Palette UI.
+A playful, virtual cat you can adopt and care for from the Command Palette. You can adopt a cat, play, feed, groom, put it to bed, view status and achievements — all without leaving the palette.
 
-## Features
+Key highlights
 
-• Adopt a virtual cat with a name and basic stats (hunger, happiness, energy)
-• Play with the cat to increase happiness
-• Feed the cat to decrease hunger
-• Put the cat to bed to restore energy
-• Persistent state between activations (local storage)
-• Cat personalities (e.g. playful, lazy, curious) that alter behavior and stat changes
+- Local-first: pet state persists on disk (no telemetry or external servers by default).
+- Lightweight WinUI extension built for .NET 9 and the Microsoft Command Palette framework.
+- Actions: adopt/create, play, feed, groom, sleep, view status, manage achievements, and give up for adoption.
+- Personality system and achievements to make each cat feel unique.
 
-## Installation
 
-> **Note:** This extension requires [Microsoft PowerToys](https://apps.microsoft.com/detail/xp89dcgq3k6vld) with Command Palette enabled.
 
-### Microsoft Store (recommended)
+1. Open the Command Palette and choose the "Pet Cat" extension.
+2. Create (adopt) a new cat and give it a name.
+3. Use actions from the palette: Play, Feed, Groom, Put to Bed, View Status, View Achievements, or Give Up for Adoption.
+4. The cat's stats (Energy, Hunger, Happiness, Hygiene) change based on actions and passively over time. Progress and achievements are saved locally.
 
-When published, the Microsoft Store is the recommended install route for automatic updates.
+Features
 
-### Manual MSIX installation (for testing)
+- Adopt and name a virtual cat with randomized personality and initial stats.
+- Play with your cat (increases Happiness, decreases Energy and Hygiene over time).
+- Feed your cat (reduces Hunger, increases Happiness/Energy depending on food).
+- Put the cat to bed (restore Energy, small Hunger increase).
+- Groom to restore Hygiene.
+- View Cat Status (Energy, Hunger, Happiness, Hygiene, personality, counters).
+- Achievements system with many unlockable badges (first play, first feed, multi-day ownership, stat milestones, personality badges, etc.).
+- Persistent storage: cat data saved under LocalApplicationData so your pet is available across sessions.
+- Small, focused UI surfaces — designed to be operated entirely from the Command Palette.
 
-1. Build or download the latest MSIX from Releases.
-2. Right‑click the MSIX file and select "Install".
-3. Follow the installer prompts.
+Where pet data is stored
 
-## How It Works
+Saved file (JSON):
+%LOCALAPPDATA%\CmdPalCatPetExtension\virtualcat.json
 
-1. **Adopt:** The user runs the extension and chooses to adopt a new cat. The extension initializes a pet profile with default stats.
-2. **Play / Feed / Sleep:** Each action adjusts the pet's stats. For example, feeding reduces hunger and playing increases happiness but lowers energy.
-3. **Persistent State:** Pet state is saved locally so returning to the extension resumes where the user left off.
-4. **UI:** Uses simple Markdown/cards in the Command Palette for status and action buttons. Optional image panels show cat photos when enabled.
+If you need to remove a saved cat during testing, see `Tools/DeleteVirtualCat.ps1` or delete the file above.
 
-## Code Structure
+Project structure (key files)
 
-- `Pages/CmdPalCatPetExtensionPage.cs` — top-level UI and command routing
-- `Pages/AdoptCatPage.cs` — adopt and name a new cat
-- `Pages/PlayCatPage.cs` — play interactions and mini-games
-- `Pages/FeedCatPage.cs` — food options and feeding logic
-- `Pages/BedCatPage.cs` — sleep/energy mechanics
-- `Services/PetStateService.cs` — persistent storage and state management
-- `Models/Pet.cs` — pet model (name, hunger, happiness, energy, lastActive)
-- `CmdPalCatPetExtension.cs` / `Program.cs` — bootstrap and registration
+- `CmdPalCatPetExtension/`
+  - `CmdPalCatPetExtensionCommandsProvider.cs` — registers the top-level "Pet Cat" command.
+  - `CmdPalCatPetExtension.cs` / `Program.cs` — extension bootstrap and registration.
+  - `Pages/`
+    - `CmdPalCatPetExtensionPage.cs` — top-level page that routes to other pages.
+    - `CreateCatPage.cs` — adopt / create a new cat and set its name.
+    - `FeedCat.cs` — feeding UI and logic.
+    - `PlayWithCat.cs` — play interactions and timers.
+    - `PutCatToBed.cs` — sleeping logic to restore energy.
+    - `Groom.cs` — grooming action to restore hygiene.
+    - `GiveUpForAdoptionPage.cs` — remove the current cat (delete save).
+    - `CatStatusPage.cs` — view current stats and counters.
+    - `AchievementsPage.cs` — view and claim achievements.
+  - `Models/VirtualCat.cs` — in-memory model for a cat (Name, Energy, Hunger, Happiness, Hygiene, counters, personality).
+  - `Services/`
+    - `CatRepository.cs` — local JSON persistence and change notifications.
+    - `AchievementsService.cs` — achievement definitions and unlock logic.
+    - `CatJsonContext.cs`, `CatRepository.cs` — storage utilities for managing saved data.
+  - `Assets/` — cat images and icons used by the UI.
+  - `Tools/DeleteVirtualCat.ps1` — helper script for test cleanup.
 
-## Dependencies
+Requirements
 
-- .NET 9
-- Microsoft.CommandPalette.Extensions
-- System.Text.Json
-- (Optional) [TheCatAPI](https://thecatapi.com) for photos
+- Windows 10 / Windows 11 with the Windows App SDK supported version (this project targets net9.0-windows10.0.22621.0).
+- .NET 9 SDK
+- Microsoft Command Palette runtime (the extension targets the Microsoft.CommandPalette.Extensions framework).
 
-## Customization
 
-- Adjust stat change values and timers in `PetStateService.cs` to tune gameplay
-- Add new actions (groom, teach trick) by adding pages and updating the pet model
-- Replace or add images in `Assets/` to change the cat's appearance
+How to use (common commands)
 
-## Privacy
+- Open the Command Palette > Pet Cat
+- Create a cat: "Adopt" or "Create Cat"
+- Feed: choose a food item to feed the cat
+- Play: select playtime length to increase happiness
+- Groom: restore hygiene
+- Put to Bed: choose rest duration to restore energy
+- View Achievements: see unlocked achievements and badges
+- Give Up for Adoption: delete saved cat
 
-All pet state is stored locally. No external servers are contacted by default unless the user enables optional photo fetching from third‑party APIs.
+Privacy
 
-## License
+All cat state is stored locally in user-local application data. No external services are contacted by default. Optional image fetching (if supported) will be explicitly opt-in and documented in code.
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+Contributing
 
-## Author
+Contributions, issues, and suggestions are welcome. Tips:
 
-[Jessica Dene Earley-Cha](https://github.com/chatasweetie)
+- Open an issue for feature requests or bugs.
+- For changes, fork the repo, create a branch, and submit a pull request with a clear description.
+- Keep changes small and focused; update or add unit tests where applicable.
+
+License
+
+This project is licensed under the MIT License — see the LICENSE file for details.
+
+Author
+
+Jessica Dene Earley-Cha — [https://github.com/chatasweetie](https://github.com/chatasweetie)
