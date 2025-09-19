@@ -12,6 +12,19 @@ namespace CmdPalCatPetExtension.Models
         // UTC timestamp of last saved state
         public DateTime LastUpdatedUtc { get; set; }
 
+        // Personality affects responses to interactions
+        public CatPersonality Personality { get; set; }
+
+        public enum CatPersonality
+        {
+            Playful,
+            Lazy,
+            Grumpy,
+            Curious,
+            Affectionate,
+            Silly
+        }
+
         public VirtualCat(string name, int energy = 80, int hunger = 20, int happiness = 60)
         {
             Name = string.IsNullOrWhiteSpace(name) ? "Unnamed" : name;
@@ -19,6 +32,8 @@ namespace CmdPalCatPetExtension.Models
             Hunger = Clamp(hunger);
             Happiness = Clamp(happiness);
             LastUpdatedUtc = DateTime.UtcNow;
+            // Assign a random personality on creation
+            Personality = (CatPersonality)Random.Shared.Next(Enum.GetValues<CatPersonality>().Length);
         }
 
         private static int Clamp(int v) => Math.Max(0, Math.Min(100, v));
@@ -32,7 +47,8 @@ namespace CmdPalCatPetExtension.Models
 
         public void Feed(int amount)
         {
-            Hunger = Clamp(Hunger - amount);
+            Energy = Clamp(Energy + amount / 3);
+            Hunger = Clamp(Hunger + amount);
             Happiness = Clamp(Happiness + amount / 5);
         }
 

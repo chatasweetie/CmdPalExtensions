@@ -53,7 +53,139 @@ namespace CmdPalCatPetExtension.Pages
             var hungerBar = Bar(displayCat.Hunger, invert: true);
             var happinessBar = Bar(displayCat.Happiness);
 
+            static string PersonalityLabel(VirtualCat.CatPersonality p)
+            {
+                return p switch
+                {
+                    VirtualCat.CatPersonality.Playful => "Playful 🐾",
+                    VirtualCat.CatPersonality.Lazy => "Lazy 😴",
+                    VirtualCat.CatPersonality.Grumpy => "Grumpy 😾",
+                    VirtualCat.CatPersonality.Curious => "Curious 🔍",
+                    VirtualCat.CatPersonality.Affectionate => "Affectionate ❤️",
+                    VirtualCat.CatPersonality.Silly => "Silly 🤪",
+                    _ => p.ToString(),
+                };
+            }
+
+            var personalityLabel = PersonalityLabel(cat.Personality);
+
+            static string AsciiArtFor(VirtualCat.CatPersonality p)
+            {
+                string[] variants = p switch
+                {
+                    VirtualCat.CatPersonality.Playful => new[]
+                    {
+                        @" /\_/\
++( o.o )
++  > ^ <",
+                        @" /\_/\
++( ^.^ )
++  /   ",
+                        @" /\_/\
++( >.< )
++  \_/",
+                        @"  /\_/\
++( =^.^= )
++  (   )",
+                        @" /\_/\
++( >o< )
++  (v_v)",
+                    },
+                    VirtualCat.CatPersonality.Lazy => new[]
+                    {
+                        @"  |\_/|  
++ ( -.- ) z
++  z z z",
+                        @"  /\_/\  
++ ( -_-)  
++   z z",
+                        @"   /\_/\
++ ( -.- )
++  ( zz)",
+                        @"  /\_/\__
++ ( -.- )  
++  z z z",
+                        @"  /\_/\
++ ( -.- )  
++  ~~~~~",
+                    },
+                    VirtualCat.CatPersonality.Grumpy => new[]
+                    {
+                        @"  /\___/\
++ ( >.< )
++  > # <",
+                        @"  /\___/\
++ ( -.- )
++  > *@ <",
+                        @"  /\___/\
++ ( -_-) 
++  > - <",
+                        @"  /\___/\
++ ( >_  )
++  > ~ <",
+                    },
+                    VirtualCat.CatPersonality.Curious => new[]
+                    {
+                        @"  /\__/\
++ ( o_O )
++  > ? <",
+                        @"  /\_/\
++ ( o.O )
++  /?\ ",
+                        @"  /\_/\
++ ( o.o )
++  (??)",
+                        @"  /\_/\
++ ( O.O )
++  (  ) ",
+                    },
+                    VirtualCat.CatPersonality.Affectionate => new[]
+                    {
+                        @"  /\_/\
++ ( ^.^ )
++  > =~ <",
+                        @"  /\_/\
++ ( ^-^ )
++  (  ) ",
+                        @"  /\_/\
++ ( =^.^= )
++  ( hug)",
+                        @"  /\_/\
++ ( ^_~ )
++  <3 <3",
+                    },
+                    VirtualCat.CatPersonality.Silly => new[]
+                    {
+                        @"  /\_/\
++ ( 0_0 )
++  > * <",
+                        @"  /\_/\
++ ( o_o )
++  > w <",
+                        @"  /\_/\
++ (*_*)
++  >o< ",
+                        @"  /\_/\
++ ( ^_^ )
++  ( o )",
+                    },
+                    _ => new[] { @"  /\_/\
++ ( -.- )
++  > ^ <" },
+                };
+
+                return variants[Random.Shared.Next(variants.Length)];
+            }
+
+            var asciiArt = AsciiArtFor(cat.Personality);
+
             string md = $@"# 😺 {displayCat.Name}
+
+**Personality:** {personalityLabel}
+
+```
+{asciiArt}
+```
 
 ```
 Energy:     {energyBar}
@@ -61,7 +193,9 @@ Hunger:     {hungerBar}
 Happiness:  {happinessBar}
 ```
 
-Press Enter to go back
+Last updated: {cat.LastUpdatedUtc.ToLocalTime():g}
+
+Press Enter to go back to the previous menu
 ";
 
             return [ new MarkdownContent(md) ];
