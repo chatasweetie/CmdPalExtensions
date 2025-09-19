@@ -13,7 +13,7 @@ namespace CmdPalCatPetExtension.Pages
     {
         public FeedCat()
         {
-            Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+            Icon = new("🍗");
             Title = "Feed your Cat";
             Name = "Feed";
         }

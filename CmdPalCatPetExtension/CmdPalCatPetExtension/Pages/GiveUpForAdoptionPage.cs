@@ -12,7 +12,7 @@ namespace CmdPalCatPetExtension.Pages
     {
         public GiveUpForAdoptionPage()
         {
-            Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+            Icon = new("🏠");
             Title = "Give up for adoption";
             Name = "Adoption";
         }

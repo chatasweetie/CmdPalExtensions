@@ -32,12 +32,13 @@ internal sealed partial class CmdPalCatPetExtensionPage : ListPage
         if (CatRepository.Load() is not null)
         {
             return [
-                new ListItem(new CatStatusPage()) { Title = "😺  View Cat Status" },
-                new ListItem(new FeedCat()) { Title = "🍽️  Feed your Cat" },
-                new ListItem(new PlayWithCat()) { Title = "🧶  Play with your Cat" },
-                new ListItem(new PutCatToBed()) { Title = "🛏️  Put your Cat to Bed" },
-                new ListItem(new Groom()) { Title = "🧼  Groom your Cat" },
-                new ListItem(new GiveUpForAdoptionPage()) { Title = "🏠  Give up your cat for adoption" },
+                new ListItem(new CatStatusPage()) { Title = "View Cat Status" },
+                new ListItem(new FeedCat()) { Title = "Feed your Cat" },
+                new ListItem(new PlayWithCat()) { Title = "Play with your Cat" },
+                new ListItem(new PutCatToBed()) { Title = "Put your Cat to Bed" },
+                new ListItem(new Groom()) { Title = "Groom your Cat" },
+                new ListItem(new AchievementsPage()) { Title = "Your Achievements" },
+                new ListItem(new GiveUpForAdoptionPage()) { Title = "Give up your cat for adoption" },
             ];
         }
         return [

@@ -10,7 +10,7 @@ namespace CmdPalCatPetExtension.Pages
     {
         public CatStatusPage()
         {
-            //Icon = new("🐾");
+            Icon = new("😺");
             Title = "Cat Status";
             Name = "Cat Status";
             // Add a Back command so Enter will navigate back to the parent page
@@ -190,7 +190,7 @@ namespace CmdPalCatPetExtension.Pages
 
 ```
 Energy:     {energyBar}
-Hunger:     {hungerBar}
+Tummy:      {hungerBar}
 Happiness:  {happinessBar}
 Hygiene:    {hygieneBar}
 ```

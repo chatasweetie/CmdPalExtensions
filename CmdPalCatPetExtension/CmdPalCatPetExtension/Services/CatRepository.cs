@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Collections.Generic;
 using CmdPalCatPetExtension.Models;
 
 namespace CmdPalCatPetExtension.Services
@@ -28,10 +29,14 @@ namespace CmdPalCatPetExtension.Services
             cat.LastUpdatedUtc = DateTime.UtcNow;
             var json = JsonSerializer.Serialize(cat, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(FilePath, json);
-            // Notify listeners that a cat was saved/changed — only notify on creation
+            // Notify listeners that a cat was saved/changed
             if (wasNew)
             {
                 CatChanged?.Invoke(CatChangeType.Created);
+            }
+            else
+            {
+                CatChanged?.Invoke(CatChangeType.Updated);
             }
         }
 
@@ -64,7 +69,21 @@ namespace CmdPalCatPetExtension.Services
             try
             {
                 var json = File.ReadAllText(FilePath);
-                return JsonSerializer.Deserialize<VirtualCat>(json);
+                var cat = JsonSerializer.Deserialize<VirtualCat>(json);
+                if (cat != null)
+                {
+                    // Ensure collections are initialized for older saved files
+                    if (cat.Achievements == null) cat.Achievements = new HashSet<string>();
+                    // initialize claimed achievements if missing
+                    var claimedProp = cat.GetType().GetProperty("ClaimedAchievements");
+                    if (claimedProp != null)
+                    {
+                        var val = claimedProp.GetValue(cat) as HashSet<string>;
+                        if (val == null) cat.GetType().GetProperty("ClaimedAchievements")?.SetValue(cat, new HashSet<string>());
+                    }
+                }
+
+                return cat;
             }
             catch
             {

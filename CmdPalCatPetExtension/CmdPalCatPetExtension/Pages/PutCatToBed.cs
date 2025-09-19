@@ -17,7 +17,7 @@ namespace CmdPalCatPetExtension.Pages
 
         public PutCatToBed()
         {
-            Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+            Icon = new("🛌");
             Title = "Put your Cat to Bed";
             Name = "Sleep";
         }

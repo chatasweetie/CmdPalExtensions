@@ -22,7 +22,7 @@ public partial class CmdPalCatPetExtensionCommandsProvider : CommandProvider
         // Refresh top-level commands when cat data is created or deleted
         CatRepository.CatChanged += (change) =>
         {
-            if (change == CatChangeType.Created || change == CatChangeType.Deleted)
+            if (change == CatChangeType.Created || change == CatChangeType.Deleted || change == CatChangeType.Updated)
             {
                 RaiseItemsChanged();
             }

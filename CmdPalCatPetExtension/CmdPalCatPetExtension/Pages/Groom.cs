@@ -59,7 +59,7 @@ namespace CmdPalCatPetExtension.Pages
 
         public Groom()
         {
-            Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+            Icon = new("🧼");
             Title = "Groom your Cat";
             Name = "Groom";
         }

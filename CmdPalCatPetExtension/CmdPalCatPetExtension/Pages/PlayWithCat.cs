@@ -59,7 +59,7 @@ namespace CmdPalCatPetExtension.Pages
 
         public PlayWithCat()
         {
-            Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+            Icon = new("🧶");
             Title = "Play with your Cat";
             Name = "Play";
         }
