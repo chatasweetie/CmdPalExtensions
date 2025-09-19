@@ -75,13 +75,18 @@ namespace CmdPalCatPetExtension.Pages
                         new ToastStatusMessage("No cat to feed — adopt one first").Show();
                         return;
                     }
+                    var oldHygiene = cat.Hygiene;
                     var elapsed = DateTime.UtcNow - cat.LastUpdatedUtc;
                     cat.Tick(elapsed);
                     cat.Feed(10);
+                    // Eating can be messy
+                    cat.Hygiene = Math.Max(0, cat.Hygiene - 3);
                     Services.CatRepository.Save(cat);
 
                     var reaction = PickSmallReaction(cat.Personality);
-                    new ToastStatusMessage($"{cat.Name} {reaction}! (+10)").Show();
+                    var hygDelta = cat.Hygiene - oldHygiene;
+                    var hygText = hygDelta == 0 ? string.Empty : $" (Hygiene {(hygDelta > 0 ? "+" : string.Empty)}{hygDelta})";
+                    new ToastStatusMessage($"{cat.Name} {reaction}! (+10){hygText}").Show();
                 }) { Result = CommandResult.GoBack() }) { Title = "🍪  Small snack (+10)" },
 
                 new ListItem(new AnonymousCommand(() =>
@@ -92,13 +97,18 @@ namespace CmdPalCatPetExtension.Pages
                         new ToastStatusMessage("No cat to feed — adopt one first").Show();
                         return;
                     }
+                    var oldHygiene = cat.Hygiene;
                     var elapsed = DateTime.UtcNow - cat.LastUpdatedUtc;
                     cat.Tick(elapsed);
                     cat.Feed(25);
+                    // Eating can be messy
+                    cat.Hygiene = Math.Max(0, cat.Hygiene - 6);
                     Services.CatRepository.Save(cat);
 
                     var reaction = PickMealReaction(cat.Personality);
-                    new ToastStatusMessage($"{cat.Name} {reaction}! (+25)").Show();
+                    var hygDelta = cat.Hygiene - oldHygiene;
+                    var hygText = hygDelta == 0 ? string.Empty : $" (Hygiene {(hygDelta > 0 ? "+" : string.Empty)}{hygDelta})";
+                    new ToastStatusMessage($"{cat.Name} {reaction}! (+25){hygText}").Show();
                 }) { Result = CommandResult.GoBack() }) { Title = "🍽️  Meal (+25)" },
 
                 new ListItem(new AnonymousCommand(() =>
@@ -109,9 +119,12 @@ namespace CmdPalCatPetExtension.Pages
                         new ToastStatusMessage("No cat to feed — adopt one first").Show();
                         return;
                     }
+                    var oldHygiene = cat.Hygiene;
                     var elapsed = DateTime.UtcNow - cat.LastUpdatedUtc;
                     cat.Tick(elapsed);
                     cat.Feed(50);
+                    // Eating can be messy
+                    cat.Hygiene = Math.Max(0, cat.Hygiene - 12);
                     Services.CatRepository.Save(cat);
 
                     // Small chance to find a toy when feasting
@@ -122,7 +135,9 @@ namespace CmdPalCatPetExtension.Pages
                         new ToastStatusMessage($"{cat.Name} found a toy in the leftovers! 🎁 +10 happiness").Show();
                     }
                     var reaction = PickFeastReaction(cat.Personality);
-                    new ToastStatusMessage($"{cat.Name} {reaction}! (+50)").Show();
+                    var hygDelta = cat.Hygiene - oldHygiene;
+                    var hygText = hygDelta == 0 ? string.Empty : $" (Hygiene {(hygDelta > 0 ? "+" : string.Empty)}{hygDelta})";
+                    new ToastStatusMessage($"{cat.Name} {reaction}! (+50){hygText}").Show();
                 }) { Result = CommandResult.GoBack() }) { Title = "🍖  Feast (+50)" },
 
                 new ListItem(new AnonymousCommand(() => { /* noop */ }) { Result = CommandResult.GoBack() }) { Title = "❌  Cancel" },

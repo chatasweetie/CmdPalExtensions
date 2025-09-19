@@ -8,6 +8,7 @@ namespace CmdPalCatPetExtension.Models
         public int Energy { get; set; } // 0-100
         public int Hunger { get; set; } // 0-100 (higher = more hungry)
         public int Happiness { get; set; } // 0-100
+        public int Hygiene { get; set; } // 0-100 (higher = cleaner)
 
         // UTC timestamp of last saved state
         public DateTime LastUpdatedUtc { get; set; }
@@ -34,6 +35,8 @@ namespace CmdPalCatPetExtension.Models
             LastUpdatedUtc = DateTime.UtcNow;
             // Assign a random personality on creation
             Personality = (CatPersonality)Random.Shared.Next(Enum.GetValues<CatPersonality>().Length);
+            // Assign a random hygiene value on creation (40-100)
+            Hygiene = Random.Shared.Next(40, 101);
         }
 
         private static int Clamp(int v) => Math.Max(0, Math.Min(100, v));
@@ -58,6 +61,8 @@ namespace CmdPalCatPetExtension.Models
             Energy = Clamp(Energy - minutes); // -1 energy per minute
             Hunger = Clamp(Hunger + minutes / 5);
             Happiness = Clamp(Happiness + minutes / 2);
+            // Playing makes the cat a bit messier
+            Hygiene = Clamp(Hygiene - minutes / 4);
         }
 
         public void Tick(TimeSpan elapsed)
@@ -66,6 +71,8 @@ namespace CmdPalCatPetExtension.Models
             Energy = Clamp(Energy - minutes);
             Hunger = Clamp(Hunger + minutes);
             Happiness = Clamp(Happiness - minutes / 2);
+            // Gradual hygiene decay over time
+            Hygiene = Clamp(Hygiene - (minutes / 10));
         }
     }
 }

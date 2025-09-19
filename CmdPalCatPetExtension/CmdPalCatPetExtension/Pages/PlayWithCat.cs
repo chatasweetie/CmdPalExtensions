@@ -76,6 +76,7 @@ namespace CmdPalCatPetExtension.Pages
                         return;
                     }
 
+                    var oldHygiene = cat.Hygiene;
                     var elapsed = DateTime.UtcNow - cat.LastUpdatedUtc;
                     cat.Tick(elapsed);
                     var duration = TimeSpan.FromMinutes(5);
@@ -83,7 +84,9 @@ namespace CmdPalCatPetExtension.Pages
                     Services.CatRepository.Save(cat);
 
                     var reaction = PickWandReaction(cat.Personality);
-                    new ToastStatusMessage($"{cat.Name} {reaction}! (Wand toy — 5m)").Show();
+                    var hygDelta = cat.Hygiene - oldHygiene;
+                    var hygText = hygDelta == 0 ? string.Empty : $" (Hygiene {(hygDelta > 0 ? "+" : string.Empty)}{hygDelta})";
+                    new ToastStatusMessage($"{cat.Name} {reaction}! (Wand toy — 5m){hygText}").Show();
                 }) { Result = CommandResult.GoBack() }) { Title = "🧶  Quick play (5m)" },
 
                 new ListItem(new AnonymousCommand(() =>
@@ -95,6 +98,7 @@ namespace CmdPalCatPetExtension.Pages
                         return;
                     }
 
+                    var oldHygiene = cat.Hygiene;
                     var elapsed = DateTime.UtcNow - cat.LastUpdatedUtc;
                     cat.Tick(elapsed);
                     var duration = TimeSpan.FromMinutes(15);
@@ -104,7 +108,9 @@ namespace CmdPalCatPetExtension.Pages
                     Services.CatRepository.Save(cat);
 
                     var reaction = PickLaserReaction(cat.Personality);
-                    new ToastStatusMessage($"{cat.Name} {reaction}! (Laser — 15m). You gave a toy at the end! 🎁 +10 happiness").Show();
+                    var hygDelta = cat.Hygiene - oldHygiene;
+                    var hygText = hygDelta == 0 ? string.Empty : $" (Hygiene {(hygDelta > 0 ? "+" : string.Empty)}{hygDelta})";
+                    new ToastStatusMessage($"{cat.Name} {reaction}! (Laser — 15m). You gave a toy at the end! 🎁 +10 happiness{hygText}").Show();
                 }) { Result = CommandResult.GoBack() }) { Title = "🔦  Laser pointer (15m)" },
 
                 new ListItem(new AnonymousCommand(() =>
@@ -116,6 +122,7 @@ namespace CmdPalCatPetExtension.Pages
                         return;
                     }
 
+                    var oldHygiene = cat.Hygiene;
                     var elapsed = DateTime.UtcNow - cat.LastUpdatedUtc;
                     cat.Tick(elapsed);
                     var duration = TimeSpan.FromMinutes(30);
@@ -125,7 +132,9 @@ namespace CmdPalCatPetExtension.Pages
                     Services.CatRepository.Save(cat);
 
                     var reaction = PickCatnipReaction(cat.Personality);
-                    new ToastStatusMessage($"{cat.Name} {reaction}! (Catnip — 30m) +15 happiness").Show();
+                    var hygDelta = cat.Hygiene - oldHygiene;
+                    var hygText = hygDelta == 0 ? string.Empty : $" (Hygiene {(hygDelta > 0 ? "+" : string.Empty)}{hygDelta})";
+                    new ToastStatusMessage($"{cat.Name} {reaction}! (Catnip — 30m) +15 happiness{hygText}").Show();
                 }) { Result = CommandResult.GoBack() }) { Title = "🧸  Catnip mouse (30m)" },
 
                 new ListItem(new AnonymousCommand(() => { }) { Result = CommandResult.GoBack() }) { Title = "❌  Cancel" },

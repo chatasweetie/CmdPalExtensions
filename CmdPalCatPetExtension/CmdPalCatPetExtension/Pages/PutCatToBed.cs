@@ -42,8 +42,8 @@ namespace CmdPalCatPetExtension.Pages
                     Services.CatRepository.Save(cat);
 
                     var reaction = PickSofaReaction(cat.Personality);
-                    new ToastStatusMessage($"{cat.Name} {reaction}. (Sofa nap — 20m) +5 happiness").Show();
-                }) { Result = CommandResult.GoBack() }) { Title = "🛋️  Sofa nap (20m)" },
+                    new ToastStatusMessage($"{cat.Name} {reaction}. (Sofa nap +20m) +5 happiness").Show();
+                }) { Result = CommandResult.GoBack() }) { Title = "🛋️  Sofa nap (+20)" },
 
                 new ListItem(new AnonymousCommand(() =>
                 {
@@ -62,8 +62,8 @@ namespace CmdPalCatPetExtension.Pages
                     Services.CatRepository.Save(cat);
 
                     var reaction = PickSunReaction(cat.Personality);
-                    new ToastStatusMessage($"{cat.Name} {reaction}. (Sunbeam snooze — 60m) +8 happiness").Show();
-                }) { Result = CommandResult.GoBack() }) { Title = "☀️  Sunbeam snooze (60m)" },
+                    new ToastStatusMessage($"{cat.Name} {reaction}. (Sunbeam snooze +60) +8 happiness").Show();
+                }) { Result = CommandResult.GoBack() }) { Title = "☀️  Sunbeam snooze (+60)" },
 
                 new ListItem(new AnonymousCommand(() =>
                 {
@@ -88,8 +88,8 @@ namespace CmdPalCatPetExtension.Pages
                     }
 
                     var reaction = PickBedReaction(cat.Personality);
-                    new ToastStatusMessage($"{cat.Name} {reaction}. (Cuddle bed — 120m) +15 happiness").Show();
-                }) { Result = CommandResult.GoBack() }) { Title = "🛏️  Cuddle bed (120m)" },
+                    new ToastStatusMessage($"{cat.Name} {reaction}. (Cuddle bed +120) +15 happiness").Show();
+                }) { Result = CommandResult.GoBack() }) { Title = "🛏️  Cuddle bed (+120)" },
 
                 new ListItem(new AnonymousCommand(() => { }) { Result = CommandResult.GoBack() }) { Title = "❌  Cancel" },
             ];

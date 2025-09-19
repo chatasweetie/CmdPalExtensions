@@ -52,6 +52,7 @@ namespace CmdPalCatPetExtension.Pages
             var energyBar = Bar(displayCat.Energy);
             var hungerBar = Bar(displayCat.Hunger, invert: true);
             var happinessBar = Bar(displayCat.Happiness);
+            var hygieneBar = Bar(displayCat.Hygiene);
 
             static string PersonalityLabel(VirtualCat.CatPersonality p)
             {
@@ -191,9 +192,8 @@ namespace CmdPalCatPetExtension.Pages
 Energy:     {energyBar}
 Hunger:     {hungerBar}
 Happiness:  {happinessBar}
+Hygiene:    {hygieneBar}
 ```
-
-Last updated: {cat.LastUpdatedUtc.ToLocalTime():g}
 
 Press Enter to go back to the previous menu
 ";
