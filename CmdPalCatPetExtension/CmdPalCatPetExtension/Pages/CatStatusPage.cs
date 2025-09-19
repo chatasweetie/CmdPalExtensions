@@ -10,7 +10,7 @@ namespace CmdPalCatPetExtension.Pages
     {
         public CatStatusPage()
         {
-            Icon = new("🐾");
+            //Icon = new("🐾");
             Title = "Cat Status";
             Name = "Cat Status";
             // Add a Back command so Enter will navigate back to the parent page
@@ -77,102 +77,102 @@ namespace CmdPalCatPetExtension.Pages
                     VirtualCat.CatPersonality.Playful => new[]
                     {
                         @" /\_/\
-+( o.o )
-+  > ^ <",
+ ( o.o )
+  > ^ <",
                         @" /\_/\
-+( ^.^ )
-+  /   ",
+ ( ^.^ )
+  /   ",
                         @" /\_/\
-+( >.< )
-+  \_/",
+ ( >.< )
+  \_/",
                         @"  /\_/\
-+( =^.^= )
-+  (   )",
+( =^.^= )
+  (   )",
                         @" /\_/\
-+( >o< )
-+  (v_v)",
+ ( >o< )
+  (v_v)",
                     },
                     VirtualCat.CatPersonality.Lazy => new[]
                     {
                         @"  |\_/|  
-+ ( -.- ) z
-+  z z z",
+  ( -.- ) z
+  z z z",
                         @"  /\_/\  
-+ ( -_-)  
-+   z z",
+ ( -_-)  
+   z z",
                         @"   /\_/\
-+ ( -.- )
-+  ( zz)",
+  ( -.- )
+  ( zz)",
                         @"  /\_/\__
-+ ( -.- )  
-+  z z z",
+  ( -.- )  
+  z z z",
                         @"  /\_/\
-+ ( -.- )  
-+  ~~~~~",
+  ( -.- )  
+  ~~~~~",
                     },
                     VirtualCat.CatPersonality.Grumpy => new[]
                     {
                         @"  /\___/\
-+ ( >.< )
-+  > # <",
+  ( >.< )
+  > # <",
                         @"  /\___/\
-+ ( -.- )
-+  > *@ <",
+  ( -.- )
+  > *@ <",
                         @"  /\___/\
-+ ( -_-) 
-+  > - <",
+  ( -_-) 
+  > - <",
                         @"  /\___/\
-+ ( >_  )
-+  > ~ <",
+  ( >_  )
+  > ~ <",
                     },
                     VirtualCat.CatPersonality.Curious => new[]
                     {
                         @"  /\__/\
-+ ( o_O )
-+  > ? <",
+ ( o_O )
+  > ? <",
                         @"  /\_/\
-+ ( o.O )
-+  /?\ ",
+ ( o.O )
+    /?\ ",
                         @"  /\_/\
-+ ( o.o )
-+  (??)",
+ ( o.o )
+   (??)",
                         @"  /\_/\
-+ ( O.O )
-+  (  ) ",
+ ( O.O )
+   (  ) ",
                     },
                     VirtualCat.CatPersonality.Affectionate => new[]
                     {
                         @"  /\_/\
-+ ( ^.^ )
-+  > =~ <",
+ ( ^.^ )
+  > =~ <",
                         @"  /\_/\
-+ ( ^-^ )
-+  (  ) ",
+ ( ^-^ )
+  (  ) ",
                         @"  /\_/\
-+ ( =^.^= )
-+  ( hug)",
+ ( =^.^= )
+  ( hug)",
                         @"  /\_/\
-+ ( ^_~ )
-+  <3 <3",
+ ( ^_~ )
+  <3 <3",
                     },
                     VirtualCat.CatPersonality.Silly => new[]
                     {
                         @"  /\_/\
-+ ( 0_0 )
-+  > * <",
+ ( 0_0 )
+  > * <",
                         @"  /\_/\
-+ ( o_o )
-+  > w <",
+ ( o_o )
+  > w <",
                         @"  /\_/\
-+ (*_*)
-+  >o< ",
+ (*_*)
+  >o< ",
                         @"  /\_/\
-+ ( ^_^ )
-+  ( o )",
+ ( ^_^ )
+  ( o )",
                     },
                     _ => new[] { @"  /\_/\
-+ ( -.- )
-+  > ^ <" },
+ ( -.- )
+  > ^ <" },
                 };
 
                 return variants[Random.Shared.Next(variants.Length)];

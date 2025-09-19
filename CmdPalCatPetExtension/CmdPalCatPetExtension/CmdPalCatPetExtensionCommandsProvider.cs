@@ -14,8 +14,7 @@ public partial class CmdPalCatPetExtensionCommandsProvider : CommandProvider
 
     public CmdPalCatPetExtensionCommandsProvider()
     {
-        DisplayName = "CmdPalCatFunExtension";
-        Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
+        DisplayName = "Pet Cat";
         _commands = [
             new CommandItem(new CmdPalCatPetExtensionPage()) { Title = DisplayName },
         ];
