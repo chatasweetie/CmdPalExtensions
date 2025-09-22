@@ -78,7 +78,7 @@ How to use (common commands)
 
 Privacy
 
-All cat state is stored locally in user-local application data. No external services are contacted by default. Optional image fetching (if supported) will be explicitly opt-in and documented in code.
+All cat state is stored locally in user-local application data. No external services are contacted by default.
 
 Contributing
 
