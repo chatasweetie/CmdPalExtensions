@@ -12,6 +12,7 @@ jobs:
     
     env:
       WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
+      GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
     
     # Only run for stable releases that contain Cat Pet Extension assets
     if: |
