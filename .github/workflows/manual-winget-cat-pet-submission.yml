@@ -151,9 +151,9 @@ jobs:
           
           # Copy manifests to the repo
           Write-Host "Copying manifests to winget-pkgs..."
-          $destBaseDir = Join-Path "manifests" "j" "jessicadeneearley-cha" "cmdpalcatpetextension"
-          New-Item -ItemType Directory -Path $destBaseDir -Force
-          Copy-Item -Path "$packageDir\*" -Destination $destBaseDir -Recurse -Force
+          $destDir = Join-Path "manifests" "j" "jessicadeneearley-cha" "cmdpalcatpetextension" $packageVersion
+          New-Item -ItemType Directory -Path $destDir -Force
+          Copy-Item -Path "$packageDir\*" -Destination $destDir -Recurse -Force
           
           # Commit and push
           Write-Host "Committing manifests..."
