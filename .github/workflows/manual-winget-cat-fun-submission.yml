@@ -129,22 +129,37 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         
-        Write-Host "Forking microsoft/winget-pkgs repository..."
+        Write-Host "Ensuring clean fork of microsoft/winget-pkgs repository..."
+        
+        # Delete existing fork if it exists to ensure clean state
         try {
-          gh repo fork microsoft/winget-pkgs --clone=false --remote=false
-          Write-Host "Repository forked successfully"
+          Write-Host "Checking if fork exists..."
+          gh repo view "${{ github.actor }}/winget-pkgs" 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Deleting existing fork to ensure clean state..."
+            gh repo delete "${{ github.actor }}/winget-pkgs" --yes
+            Start-Sleep -Seconds 5
+          }
         }
         catch {
-          Write-Host "Fork may already exist, continuing..."
+          Write-Host "No existing fork found or already deleted."
         }
         
-        Write-Host "Cloning forked repository..."
+        Write-Host "Creating fresh fork..."
+        gh repo fork microsoft/winget-pkgs --clone=false --remote=false
+        Start-Sleep -Seconds 3
+        
+        Write-Host "Cloning fresh fork..."
         $repoUrl = "https://x-access-token:${{ secrets.WINGET_TOKEN }}@github.com/${{ github.actor }}/winget-pkgs.git"
         git clone $repoUrl winget-pkgs-fork
         cd winget-pkgs-fork
         
         # Configure git to use token for pushes
         git remote set-url origin $repoUrl
+        
+        # Ensure we're on the latest master branch
+        git checkout master
+        git pull origin master
         
         Write-Host "Copying manifest files..."
         $sourcePath = "..\$packageDir"

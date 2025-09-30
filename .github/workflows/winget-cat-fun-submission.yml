@@ -167,10 +167,30 @@ jobs:
           if ($packageVersion -match '^0\.0\.') {
             Write-Host "Creating new package (version starts with 0.0.x)..."
             
-            # Fork and clone winget-pkgs repo
-            Write-Host "Forking and cloning winget-pkgs..."
+            # Ensure clean fork and clone winget-pkgs repo
+            Write-Host "Ensuring clean fork of microsoft/winget-pkgs repository..."
+            
+            # Delete existing fork if it exists to ensure clean state
+            try {
+              Write-Host "Checking if fork exists..."
+              gh repo view "chatasweetie/winget-pkgs" 2>$null
+              if ($LASTEXITCODE -eq 0) {
+                Write-Host "Deleting existing fork to ensure clean state..."
+                gh repo delete "chatasweetie/winget-pkgs" --yes
+                Start-Sleep -Seconds 5
+              }
+            }
+            catch {
+              Write-Host "No existing fork found or already deleted."
+            }
+            
+            Write-Host "Creating fresh fork and cloning..."
             gh repo fork microsoft/winget-pkgs --clone
             cd winget-pkgs
+            
+            # Ensure we're on the latest master branch
+            git checkout master
+            git pull origin master
             
             # Copy manifests to the repo
             Write-Host "Copying manifests to winget-pkgs..."
