@@ -69,16 +69,6 @@ jobs:
           Write-Host "Downloading wingetcreate..."
           curl.exe -JLO https://aka.ms/wingetcreate/latest
           
-          # Submit package with manual parameters (MSIX parsing fails, so provide explicit info)
-          Write-Host "Submitting package with manual parameters..."
-          .\wingetcreate.exe new `
-            --urls "$msixUrl" `
-            --package-id "JessicaDeneEarley-Cha.CmdPalCatPetExtension" `
-            --name "Pet Cat" `
-            --publisher "Jessica Dene Earley-Cha" `
-            --version "$packageVersion" `
-            --moniker "pet-cat" `
-            --short-description "Adopt and care for a virtual cat directly from the Command Palette." `
-            --installer-type msix `
-            --architecture x64 `
-            --scope machine
+          # Submit package using wingetcreate with URL (let it extract metadata)
+          Write-Host "Submitting package using wingetcreate v1.10.3.0..."
+          .\wingetcreate.exe new "$msixUrl"

@@ -72,25 +72,13 @@ jobs:
           Write-Host "Downloading wingetcreate..."
           curl.exe -JLO https://aka.ms/wingetcreate/latest
           
-          # Submit package with manual parameters (MSIX parsing fails, so provide explicit info)
+          # Submit package using wingetcreate v1.10.3.0 (simple URL mode)
           if ($packageVersion -match '^0\.0\.') {
             Write-Host "Creating new package (version starts with 0.0.x)..."
-            .\wingetcreate.exe new `
-              --urls "$msixUrl" `
-              --package-id "JessicaDeneEarley-Cha.CmdPalCatPetExtension" `
-              --name "Pet Cat" `
-              --publisher "Jessica Dene Earley-Cha" `
-              --version "$packageVersion" `
-              --moniker "pet-cat" `
-              --short-description "Adopt and care for a virtual cat directly from the Command Palette." `
-              --installer-type msix `
-              --architecture x64 `
-              --scope machine
+            .\wingetcreate.exe new "$msixUrl"
           } else {
             Write-Host "Updating existing package..."
-            .\wingetcreate.exe update JessicaDeneEarley-Cha.CmdPalCatPetExtension `
-              --version $packageVersion `
-              --urls "$msixUrl"
+            .\wingetcreate.exe update JessicaDeneEarley-Cha.CmdPalCatPetExtension --version $packageVersion --urls "$msixUrl"
           }
         
       - name: Output result
