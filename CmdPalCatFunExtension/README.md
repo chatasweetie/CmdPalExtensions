@@ -81,4 +81,5 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ## Author
 
-[Jessica Dene Earley-Cha](https://github.com/chatasweetie)
+[Jessica Dene Earley-Cha](htthttps://www.jessicadeneearley-cha.com/)  |  [https://github.com/chatasweetie](https://github.com/chatasweetie)
+

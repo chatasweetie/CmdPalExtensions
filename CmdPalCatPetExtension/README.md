@@ -1,41 +1,69 @@
-# Cat Pet — Virtual Cat for the Command Palette
+# Cat Pet Extension — Virtual Cat for the Command Palette
 
-A playful, virtual cat you can adopt and care for from the Command Palette. You can adopt a cat, play, feed, groom, put it to bed, view status and achievements — all without leaving the palette.
+A playful, virtual cat you can adopt and care for from the Microsoft Command Palette. You can adopt a cat, play, feed, groom, put it to bed, view status and achievements — all without leaving the palette.
 
-Key highlights
+![Cat Pet Extension Demo](CmdPalCatPetExtension/Assets/catpetdemo.gif)
 
-- Local-first: pet state persists on disk (no telemetry or external servers by default).
-- Lightweight WinUI extension built for .NET 9 and the Microsoft Command Palette framework.
-- Actions: adopt/create, play, feed, groom, sleep, view status, manage achievements, and give up for adoption.
-- Personality system and achievements to make each cat feel unique.
+## 🎯 Key Highlights
+
+- **Local-first**: Pet state persists on disk (no telemetry or external servers by default)
+- **Lightweight WinUI extension** built for .NET 9 and the Microsoft Command Palette framework
+- **Rich interactions**: adopt/create, play, feed, groom, sleep, view status, manage achievements, and give up for adoption
+- **Personality system** and achievements to make each cat feel unique
+- **Published on Microsoft Store** and **WinGet** for easy installation
+
+## 📦 Installation
+
+### Via WinGet (Recommended)
+```powershell
+winget install JessicaDeneEarley-Cha.CmdPalCatPetExtension
+```
+
+### Via Microsoft Store
+Search for "Cat Pet Extension" in the Microsoft Store or visit the [Store listing](https://apps.microsoft.com/store/detail/cat-pet-extension/9P7JQZQZQZQZ).
 
 
 
-1. Open the Command Palette and choose the "Pet Cat" extension.
-2. Create (adopt) a new cat and give it a name.
-3. Use actions from the palette: Play, Feed, Groom, Put to Bed, View Status, View Achievements, or Give Up for Adoption.
-4. The cat's stats (Energy, Hunger, Happiness, Hygiene) change based on actions and passively over time. Progress and achievements are saved locally.
+## ✨ Features
 
-Features
+- **Adopt** a virtual cat with randomized personality and initial stats
+- **Interactive care**: Play, feed, groom, and put your cat to bed
+- **Dynamic stats system**: Energy, Hunger, Happiness, and Hygiene that change over time
+- **Rich achievements system** with unlockable badges for various milestones
+- **Persistent storage**: Cat data saved locally so your pet persists across sessions
+- **Command Palette integration**: All interactions happen within the Command Palette interface
+- **Personality traits**: Each cat has unique characteristics that affect interactions
 
-- Adopt and name a virtual cat with randomized personality and initial stats.
-- Play with your cat (increases Happiness, decreases Energy and Hygiene over time).
-- Feed your cat (reduces Hunger, increases Happiness/Energy depending on food).
-- Put the cat to bed (restore Energy, small Hunger increase).
-- Groom to restore Hygiene.
-- View Cat Status (Energy, Hunger, Happiness, Hygiene, personality, counters).
-- Achievements system with many unlockable badges (first play, first feed, multi-day ownership, stat milestones, personality badges, etc.).
-- Persistent storage: cat data saved under LocalApplicationData so your pet is available across sessions.
-- Small, focused UI surfaces — designed to be operated entirely from the Command Palette.
 
-Where pet data is stored
+
+
+## 📋 Requirements
+
+- **Windows 10 / Windows 11** with the Windows App SDK supported version (this project targets net9.0-windows10.0.22621.0)
+- **.NET 9 SDK** for development
+- **Microsoft Command Palette runtime** (the extension targets the Microsoft.CommandPalette.Extensions framework)
+- **Microsoft.WindowsAppRuntime.1.6** dependency (automatically handled by WinGet/Store installation)
+
+## Privacy
+
+All cat state is stored locally in user-local application data. No external services are contacted by default.
+
+## 🛠️ Development
+
+### Building the Project
+1. Clone the repository
+2. Open `CmdPalCatPetExtension.sln` in Visual Studio 2022 or VS Code
+3. Restore NuGet packages
+4. Build and run
+
+### Where pet data is stored
 
 Saved file (JSON):
 %LOCALAPPDATA%\CmdPalCatPetExtension\virtualcat.json
 
 If you need to remove a saved cat during testing, see `Tools/DeleteVirtualCat.ps1` or delete the file above.
 
-Project structure (key files)
+### Project structure
 
 - `CmdPalCatPetExtension/`
   - `CmdPalCatPetExtensionCommandsProvider.cs` — registers the top-level "Pet Cat" command.
@@ -58,40 +86,24 @@ Project structure (key files)
   - `Assets/` — cat images and icons used by the UI.
   - `Tools/DeleteVirtualCat.ps1` — helper script for test cleanup.
 
-Requirements
+## 🤝 Contributing
 
-- Windows 10 / Windows 11 with the Windows App SDK supported version (this project targets net9.0-windows10.0.22621.0).
-- .NET 9 SDK
-- Microsoft Command Palette runtime (the extension targets the Microsoft.CommandPalette.Extensions framework).
+Contributions, issues, and suggestions are welcome! Here's how to help:
+
+- **Report bugs**: Open an issue with detailed reproduction steps
+- **Suggest features**: Create an issue with your feature request
+- **Contribute code**: Fork the repo, create a branch, and submit a pull request
+- **Improve documentation**: Help make the README and guides better
 
 
-How to use (common commands)
-
-- Open the Command Palette > Pet Cat
-- Create a cat: "Adopt" or "Create Cat"
-- Feed: choose a food item to feed the cat
-- Play: select playtime length to increase happiness
-- Groom: restore hygiene
-- Put to Bed: choose rest duration to restore energy
-- View Achievements: see unlocked achievements and badges
-- Give Up for Adoption: delete saved cat
-
-Privacy
-
-All cat state is stored locally in user-local application data. No external services are contacted by default.
-
-Contributing
-
-Contributions, issues, and suggestions are welcome. Tips:
-
-- Open an issue for feature requests or bugs.
-- For changes, fork the repo, create a branch, and submit a pull request with a clear description.
-- Keep changes small and focused; update or add unit tests where applicable.
-
-License
+## 📄 License
 
 This project is licensed under the MIT License — see the LICENSE file for details.
 
-Author
+## 👤 Author
 
-Jessica Dene Earley-Cha — [https://github.com/chatasweetie](https://github.com/chatasweetie)
+[Jessica Dene Earley-Cha](htthttps://www.jessicadeneearley-cha.com/)  |  [https://github.com/chatasweetie](https://github.com/chatasweetie)
+
+---
+
+*Made with ❤️ for Command Palette enthusiasts and virtual pet lovers!*

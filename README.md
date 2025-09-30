@@ -14,10 +14,10 @@ A collection of Command Palette extensions for Windows that enhance your product
 - **Repository**: [CmdPalRandomRiddleExtension](./CmdPalRandomRiddleExtension/)
 
 **Features:**
-• Fetch random riddles from online API
-• Interactive answer reveal with Enter key
-• Fresh riddle with each activation
-• Clean, distraction-free interface
+- Fetch random riddles from online API
+- Interactive answer reveal with Enter key
+- Fresh riddle with each activation
+- Clean, distraction-free interface
 
 
 ### 🐱 Cat Fun Extension
@@ -26,16 +26,30 @@ A collection of Command Palette extensions for Windows that enhance your product
 
 - **Description**: Provides random cat facts, photos, and playful puns directly inside the Command Palette. Photos are optionally fetched from TheCatAPI and facts/puns come from a mix of public APIs and bundled phrase lists.
 - **Repository**: [CmdPalCatFunExtension](./CmdPalCatFunExtension/)
+- **Installation**: [Microsoft Store](https://apps.microsoft.com/store/detail/cat-pet-extension/9NMK0M2D18CQ)
 
 **Features:**
-• Show a random cat fact
-• Display a cat photo (TheCatAPI if enabled)
-• Deliver playful cat puns and short phrases
-• Interactive actions to reveal more content or open images
+- Show a random cat fact
+- Display a cat photo (TheCatAPI if enabled)
+- Deliver playful cat puns and short phrases
+- Interactive actions to reveal more content or open images
 
-**Notes:**
-- Requires Microsoft PowerToys with Command Palette enabled to use the extension.
-- API usage should follow provider terms and include any required attribution or API keys.
+
+### 🐾 Cat Pet Extension
+
+**A playful, virtual cat you can adopt and care for from the Command Palette.**
+
+- **Description**: Virtual cat companion with interactive care system - adopt, play, feed, groom, and manage achievements all within the Command Palette
+- **Installation**: [Microsoft Store](https://apps.microsoft.com/store/detail/cat-pet-extension/9P7JQZQZQZQZ) 
+- **Repository**: [CmdPalCatPetExtension](./CmdPalCatPetExtension/)
+
+**Features:**
+- Adopt virtual cats with unique personalities and traits
+- Interactive care system: play, feed, groom, and put to bed
+- Dynamic stats tracking: Energy, Hunger, Happiness, and Hygiene
+- Rich achievements system with unlockable badges
+- Local-first persistence (no telemetry or external servers)
+- Built for .NET 9 and Microsoft Command Palette framework
 
 ## Prerequisites
 
@@ -62,6 +76,14 @@ CmdPalExtensions/
 │   ├── README.md                  # Extension-specific documentation
 │   ├── CmdPalRandomRiddleExtension/
 │   └── CmdPalRandomRiddleExtension.sln
+├── CmdPalCatFunExtension/         # Cat entertainment extension
+│   ├── README.md                  # Extension-specific documentation
+│   ├── CmdPalCatFunExtension/
+│   └── CmdPalCatFunExtension.sln
+├── CmdPalCatPetExtension/         # Virtual cat pet extension
+│   ├── README.md                  # Extension-specific documentation
+│   ├── CmdPalCatPetExtension/
+│   └── CmdPalCatPetExtension.sln
 └── (future extensions will be added here)
 ```
 
@@ -87,3 +109,7 @@ Please check individual extension directories for specific contribution guidelin
 ## License
 
 This project is licensed under the MIT License. See individual extension directories for specific license information.
+
+## Author
+
+[Jessica Dene Earley-Cha](htthttps://www.jessicadeneearley-cha.com/)  |  [https://github.com/chatasweetie](https://github.com/chatasweetie)
