@@ -129,66 +129,109 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         
-        Write-Host "Ensuring clean fork of microsoft/winget-pkgs repository..."
+        Write-Host "Setting up clean winget-pkgs repository..."
         
-        # Delete existing fork if it exists to ensure clean state
-        try {
-          Write-Host "Checking if fork exists..."
-          gh repo view "${{ github.actor }}/winget-pkgs" 2>$null
-          if ($LASTEXITCODE -eq 0) {
-            Write-Host "Deleting existing fork to ensure clean state..."
-            gh repo delete "${{ github.actor }}/winget-pkgs" --yes
-            Start-Sleep -Seconds 5
-          }
-        }
-        catch {
-          Write-Host "No existing fork found or already deleted."
-        }
+        # Create a unique branch name to avoid conflicts
+        $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+        $branchName = "cat-fun-${{ steps.get_release.outputs.package_version }}-$timestamp"
         
-        Write-Host "Creating fresh fork..."
-        gh repo fork microsoft/winget-pkgs --clone=false --remote=false
-        Start-Sleep -Seconds 3
+        # Clone the official winget-pkgs repository directly (not a fork)
+        Write-Host "Cloning microsoft/winget-pkgs repository..."
+        git clone "https://github.com/microsoft/winget-pkgs.git" winget-pkgs-clean
+        cd winget-pkgs-clean
         
-        Write-Host "Cloning fresh fork..."
-        $repoUrl = "https://x-access-token:${{ secrets.WINGET_TOKEN }}@github.com/${{ github.actor }}/winget-pkgs.git"
-        git clone $repoUrl winget-pkgs-fork
-        cd winget-pkgs-fork
+        Write-Host "Creating new branch: $branchName"
+        git checkout -b $branchName
         
-        # Configure git to use token for pushes
-        git remote set-url origin $repoUrl
-        
-        # Ensure we're on the latest master branch
-        git checkout master
-        git pull origin master
-        
-        Write-Host "Copying manifest files..."
+        Write-Host "Copying ONLY Cat Fun Extension manifest files..."
         $sourcePath = "..\$packageDir"
         $targetPath = $packageDir -replace "winget-manifests\\", ""
         
+        # Ensure target directory exists
         New-Item -ItemType Directory -Path $targetPath -Force
+        
+        # Copy only our specific Cat Fun Extension files
         Copy-Item -Path "$sourcePath\*" -Destination $targetPath -Recurse -Force
         
-        Write-Host "Adding and committing changes..."
-        git add .
-        git status
+        Write-Host "Verifying only Cat Fun Extension files are being added..."
+        $addedFiles = git status --porcelain
+        Write-Host "Files to be committed:"
+        $addedFiles | ForEach-Object { Write-Host "  $_" }
         
-        $commitMessage = "Add ${{ steps.get_release.outputs.package_version }} version of Cat Fun Extension"
+        # Verify that only Cat Fun Extension files are present
+        $nonCatFunFiles = $addedFiles | Where-Object { $_ -notmatch "cmdpalcatfunextension" }
+        if ($nonCatFunFiles) {
+          Write-Error "ERROR: Non-Cat Fun Extension files detected:"
+          $nonCatFunFiles | ForEach-Object { Write-Error "  $_" }
+          exit 1
+        }
+        
+        Write-Host "Adding and committing Cat Fun Extension files only..."
+        git add manifests/j/jessicadeneearley-cha/cmdpalcatfunextension/
+        
+        $commitMessage = "Add JessicaDeneEarley-Cha.CmdPalCatFunExtension version ${{ steps.get_release.outputs.package_version }}"
         git commit -m $commitMessage
         
-        Write-Host "Pushing changes..."
-        git push origin master
+        Write-Host "Setting up authentication and pushing to personal fork..."
         
-        Write-Host "Creating pull request..."
+        # Check if fork exists, create if it doesn't
+        $forkExists = $false
+        try {
+          gh repo view "${{ github.actor }}/winget-pkgs" 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            $forkExists = $true
+            Write-Host "Fork already exists"
+          }
+        }
+        catch {
+          Write-Host "Fork does not exist"
+        }
+        
+        if (-not $forkExists) {
+          Write-Host "Creating fork..."
+          gh repo fork microsoft/winget-pkgs --clone=false --remote=false
+          Start-Sleep -Seconds 3
+        }
+        
+        # Add our fork as a remote and push the branch
+        $forkUrl = "https://x-access-token:${{ secrets.WINGET_TOKEN }}@github.com/${{ github.actor }}/winget-pkgs.git"
+        git remote add fork $forkUrl
+        
+        Write-Host "Pushing branch to fork..."
+        git push fork $branchName
+        
+        Write-Host "Creating pull request from clean branch..."
         $prTitle = "New version: JessicaDeneEarley-Cha.CmdPalCatFunExtension version ${{ steps.get_release.outputs.package_version }}"
-        $prBody = "This PR adds version ${{ steps.get_release.outputs.package_version }} of Cat Fun Extension to the Windows Package Manager Community Repository.`n`nGenerated by GitHub Actions from https://github.com/chatasweetie/CmdPalExtensions"
+        $prBody = "This PR adds version ${{ steps.get_release.outputs.package_version }} of Cat Fun Extension to the Windows Package Manager Community Repository.`n`nGenerated by GitHub Actions from https://github.com/chatasweetie/CmdPalExtensions`n`nThis submission contains only Cat Fun Extension manifests to avoid validation conflicts."
         
-        $prUrl = gh pr create --repo microsoft/winget-pkgs --title $prTitle --body $prBody --head "${{ github.actor }}:master"
+        $prUrl = gh pr create --repo microsoft/winget-pkgs --title $prTitle --body $prBody --head "${{ github.actor }}:$branchName"
         Write-Host "Pull request created: $prUrl"
         
         echo "pr_url=$prUrl" >> $env:GITHUB_OUTPUT
       env:
         GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
         
+    - name: Cleanup temporary files
+      if: always()
+      shell: pwsh
+      run: |
+        Write-Host "Cleaning up temporary files and directories..."
+        
+        # Remove any downloaded MSIX files
+        Get-ChildItem -Path "." -Filter "*.msix" | Remove-Item -Force -ErrorAction SilentlyContinue
+        
+        # Remove winget-manifests directory
+        if (Test-Path "winget-manifests") {
+          Remove-Item -Path "winget-manifests" -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        
+        # Remove winget-pkgs-clean directory
+        if (Test-Path "winget-pkgs-clean") {
+          Remove-Item -Path "winget-pkgs-clean" -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        
+        Write-Host "Cleanup completed."
+
     - name: Output result
       if: always()
       run: |

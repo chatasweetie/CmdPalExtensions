@@ -167,51 +167,76 @@ jobs:
           if ($packageVersion -match '^0\.0\.') {
             Write-Host "Creating new package (version starts with 0.0.x)..."
             
-            # Ensure clean fork and clone winget-pkgs repo
-            Write-Host "Ensuring clean fork of microsoft/winget-pkgs repository..."
+            # Set up clean winget-pkgs repository for submission
+            Write-Host "Setting up clean winget-pkgs repository..."
             
-            # Delete existing fork if it exists to ensure clean state
-            try {
-              Write-Host "Checking if fork exists..."
-              gh repo view "chatasweetie/winget-pkgs" 2>$null
-              if ($LASTEXITCODE -eq 0) {
-                Write-Host "Deleting existing fork to ensure clean state..."
-                gh repo delete "chatasweetie/winget-pkgs" --yes
-                Start-Sleep -Seconds 5
-              }
-            }
-            catch {
-              Write-Host "No existing fork found or already deleted."
-            }
+            # Create a unique branch name to avoid conflicts
+            $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+            $branchName = "cat-fun-$packageVersion-$timestamp"
             
-            Write-Host "Creating fresh fork and cloning..."
-            gh repo fork microsoft/winget-pkgs --clone
-            cd winget-pkgs
+            # Clone the official winget-pkgs repository directly (not a fork)
+            Write-Host "Cloning microsoft/winget-pkgs repository..."
+            git clone "https://github.com/microsoft/winget-pkgs.git" winget-pkgs-clean
+            cd winget-pkgs-clean
             
-            # Ensure we're on the latest master branch
-            git checkout master
-            git pull origin master
+            Write-Host "Creating new branch: $branchName"
+            git checkout -b $branchName
             
             # Copy manifests to the repo
-            Write-Host "Copying manifests to winget-pkgs..."
+            Write-Host "Copying ONLY Cat Fun Extension manifests..."
             $destDir = Join-Path "manifests" "j" "jessicadeneearley-cha" "cmdpalcatfunextension" $packageVersion
             New-Item -ItemType Directory -Path $destDir -Force
             Copy-Item -Path "$packageDir\*" -Destination $destDir -Recurse -Force
             
+            Write-Host "Verifying only Cat Fun Extension files are being added..."
+            $addedFiles = git status --porcelain
+            Write-Host "Files to be committed:"
+            $addedFiles | ForEach-Object { Write-Host "  $_" }
+            
+            # Verify that only Cat Fun Extension files are present
+            $nonCatFunFiles = $addedFiles | Where-Object { $_ -notmatch "cmdpalcatfunextension" }
+            if ($nonCatFunFiles) {
+              Write-Error "ERROR: Non-Cat Fun Extension files detected:"
+              $nonCatFunFiles | ForEach-Object { Write-Error "  $_" }
+              exit 1
+            }
+            
             # Commit and push
-            Write-Host "Committing manifests..."
+            Write-Host "Committing Cat Fun Extension manifests..."
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add .
+            git add manifests/j/jessicadeneearley-cha/cmdpalcatfunextension/
             git commit -m "New package: JessicaDeneEarley-Cha.CmdPalCatFunExtension version $packageVersion"
             
-            # Set up authentication and push
-            git remote set-url origin "https://x-access-token:$env:GH_TOKEN@github.com/chatasweetie/winget-pkgs.git"
-            git push origin master
+            Write-Host "Setting up authentication and pushing to personal fork..."
+            
+            # Check if fork exists, create if it doesn't
+            $forkExists = $false
+            try {
+              gh repo view "chatasweetie/winget-pkgs" 2>$null
+              if ($LASTEXITCODE -eq 0) {
+                $forkExists = $true
+                Write-Host "Fork already exists"
+              }
+            }
+            catch {
+              Write-Host "Fork does not exist"
+            }
+            
+            if (-not $forkExists) {
+              Write-Host "Creating fork..."
+              gh repo fork microsoft/winget-pkgs --clone=false --remote=false
+              Start-Sleep -Seconds 3
+            }
+            
+            # Add our fork as a remote and push the branch
+            $forkUrl = "https://x-access-token:$env:GH_TOKEN@github.com/chatasweetie/winget-pkgs.git"
+            git remote add fork $forkUrl
+            git push fork $branchName
             
             # Create pull request
-            Write-Host "Creating pull request..."
-            $prUrl = gh pr create --title "New package: JessicaDeneEarley-Cha.CmdPalCatFunExtension version $packageVersion" --body "This PR adds JessicaDeneEarley-Cha.CmdPalCatFunExtension version $packageVersion to the Windows Package Manager Community Repository.`n`nGenerated by GitHub Actions from https://github.com/chatasweetie/CmdPalExtensions"
+            Write-Host "Creating pull request from clean branch..."
+            $prUrl = gh pr create --repo microsoft/winget-pkgs --title "New package: JessicaDeneEarley-Cha.CmdPalCatFunExtension version $packageVersion" --body "This PR adds JessicaDeneEarley-Cha.CmdPalCatFunExtension version $packageVersion to the Windows Package Manager Community Repository.`n`nGenerated by GitHub Actions from https://github.com/chatasweetie/CmdPalExtensions`n`nThis submission contains only Cat Fun Extension manifests to avoid validation conflicts." --head "chatasweetie:$branchName"
             
             Write-Host "Pull request created: $prUrl"
           } else {
@@ -219,6 +244,26 @@ jobs:
             Write-Host "Note: Automatic updates not yet implemented - use manual workflow for updates"
           }
         
+      - name: Cleanup temporary files
+        if: always()
+        run: |
+          Write-Host "Cleaning up temporary files and directories..."
+          
+          # Remove any downloaded MSIX files
+          Get-ChildItem -Path "." -Filter "*.msix" | Remove-Item -Force -ErrorAction SilentlyContinue
+          
+          # Remove temporary manifests directory
+          if (Test-Path "manifests") {
+            Remove-Item -Path "manifests" -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          
+          # Remove winget-pkgs-clean directory
+          if (Test-Path "winget-pkgs-clean") {
+            Remove-Item -Path "winget-pkgs-clean" -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          
+          Write-Host "Cleanup completed."
+
       - name: Output result
         if: always()
         run: |
