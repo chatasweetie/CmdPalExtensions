@@ -154,7 +154,7 @@ jobs:
         Copy-Item -Path "$sourcePath\*" -Destination $targetPath -Recurse -Force
         
         Write-Host "Verifying only Cat Fun Extension files are being added..."
-        $addedFiles = git status --porcelain
+        $addedFiles = git ls-files --others --cached manifests/
         Write-Host "Files to be committed:"
         $addedFiles | ForEach-Object { Write-Host "  $_" }
         
@@ -165,6 +165,8 @@ jobs:
           $nonCatFunFiles | ForEach-Object { Write-Error "  $_" }
           exit 1
         }
+        
+        Write-Host "Validation passed: Only Cat Fun Extension files found."
         
         Write-Host "Adding and committing Cat Fun Extension files only..."
         git add manifests/j/jessicadeneearley-cha/cmdpalcatfunextension/
