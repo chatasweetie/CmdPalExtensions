@@ -65,10 +65,108 @@ jobs:
           Write-Host "  Package Version: $packageVersion"
           Write-Host "  MSIX URL: $msixUrl"
           
-          # Download wingetcreate
-          Write-Host "Downloading wingetcreate..."
-          curl.exe -JLO https://aka.ms/wingetcreate/latest
+          # Create temporary directory for manifests
+          $tempDir = New-TemporaryFile | ForEach-Object { Remove-Item $_; New-Item -ItemType Directory -Path $_ }
+          $manifestsDir = Join-Path $tempDir "manifests"
+          $packageDir = Join-Path $manifestsDir "j" "jessicadeneearley-cha" "cmdpalcatpetextension" $packageVersion
+          New-Item -ItemType Directory -Path $packageDir -Force
           
-          # Submit package using wingetcreate with URL (let it extract metadata)
-          Write-Host "Submitting package using wingetcreate v1.10.3.0..."
-          .\wingetcreate.exe new "$msixUrl"
+          # Create version manifest
+          $versionContent = @"
+          PackageIdentifier: JessicaDeneEarley-Cha.CmdPalCatPetExtension
+          PackageVersion: $packageVersion
+          DefaultLocale: en-US
+          ManifestType: version
+          ManifestVersion: 1.4.0
+          "@
+          
+          $versionContent | Out-File -FilePath (Join-Path $packageDir "JessicaDeneEarley-Cha.CmdPalCatPetExtension.yaml") -Encoding UTF8
+          
+          # Create installer manifest
+          $installerContent = @"
+          PackageIdentifier: JessicaDeneEarley-Cha.CmdPalCatPetExtension
+          PackageVersion: $packageVersion
+          InstallerLocale: en-US
+          Platform:
+          - Windows.Desktop
+          MinimumOSVersion: 10.0.17763.0
+          InstallerType: msix
+          Scope: machine
+          InstallModes:
+          - interactive
+          - silent
+          UpgradeBehavior: install
+          Dependencies:
+            PackageDependencies:
+            - PackageIdentifier: Microsoft.WindowsAppRuntime.1.6
+              MinimumVersion: 6.0.0
+          PackageFamilyName: JessicaDeneEarley-Cha.CmdPalCatPetExtension_9zz4h110yvjzm
+          Installers:
+          - Architecture: x64
+            InstallerUrl: $msixUrl
+            InstallerSha256: FFD620E3D0601489355CE60454C2994B933687963718D9504CA8282BFF71F199
+            SignatureSha256: FFD620E3D0601489355CE60454C2994B933687963718D9504CA8282BFF71F199
+          ManifestType: installer
+          ManifestVersion: 1.4.0
+          "@
+          
+          $installerContent | Out-File -FilePath (Join-Path $packageDir "JessicaDeneEarley-Cha.CmdPalCatPetExtension.installer.yaml") -Encoding UTF8
+          
+          # Create locale manifest
+          $localeContent = @"
+          PackageIdentifier: JessicaDeneEarley-Cha.CmdPalCatPetExtension
+          PackageVersion: $packageVersion
+          PackageLocale: en-US
+          Publisher: Jessica Dene Earley-Cha
+          PublisherUrl: https://github.com/chatasweetie
+          PublisherSupportUrl: https://github.com/chatasweetie/CmdPalExtensions/issues
+          Author: Jessica Dene Earley-Cha
+          PackageName: Pet Cat
+          PackageUrl: https://github.com/chatasweetie/CmdPalExtensions
+          License: MIT
+          LicenseUrl: https://opensource.org/licenses/MIT
+          Copyright: Jessica Dene Earley-Cha
+          CopyrightUrl: https://github.com/chatasweetie/CmdPalExtensions/blob/main/LICENSE
+          ShortDescription: Adopt and care for a virtual cat directly from the Command Palette.
+          Description: |-
+            Pet Cat is a Command Palette extension that lets you adopt and care for a virtual cat right from the Command Palette.
+            Feed, groom, and play with your virtual pet while working in your development environment.
+          Moniker: pet-cat
+          Tags:
+          - windows-commandpalette-extension
+          - virtual-pet
+          - command-palette
+          - cat
+          - pet
+          ManifestType: locale
+          ManifestVersion: 1.4.0
+          "@
+          
+          $localeContent | Out-File -FilePath (Join-Path $packageDir "JessicaDeneEarley-Cha.CmdPalCatPetExtension.locale.en-US.yaml") -Encoding UTF8
+          
+          Write-Host "Created manifest files:"
+          Get-ChildItem $packageDir -Recurse
+          
+          # Fork and clone winget-pkgs repo
+          Write-Host "Forking and cloning winget-pkgs..."
+          gh repo fork microsoft/winget-pkgs --clone
+          cd winget-pkgs
+          
+          # Copy manifests to the repo
+          Write-Host "Copying manifests to winget-pkgs..."
+          $destDir = Join-Path "manifests" "j" "jessicadeneearley-cha" "cmdpalcatpetextension" $packageVersion
+          Copy-Item -Path $packageDir -Destination (Split-Path $destDir) -Recurse -Force
+          
+          # Commit and push
+          Write-Host "Committing manifests..."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "New version: JessicaDeneEarley-Cha.CmdPalCatPetExtension version $packageVersion"
+          git push origin main
+          
+          # Create pull request
+          Write-Host "Creating pull request..."
+          $prUrl = gh pr create --title "New version: JessicaDeneEarley-Cha.CmdPalCatPetExtension version $packageVersion" --body "This PR adds JessicaDeneEarley-Cha.CmdPalCatPetExtension version $packageVersion to the Windows Package Manager Community Repository.`n`nGenerated by GitHub Actions from https://github.com/chatasweetie/CmdPalExtensions"
+          
+          Write-Host "Pull request created: $prUrl"
