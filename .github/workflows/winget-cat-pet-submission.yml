@@ -1,0 +1,91 @@
+name: WinGet submission - Cat Pet Extension
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  winget-cat-pet:
+    name: Submit Cat Pet Extension to WinGet
+    runs-on: windows-latest
+    
+    env:
+      WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
+    
+    # Only run for stable releases that contain Cat Pet Extension assets
+    if: |
+      ${{ 
+        !github.event.release.prerelease && 
+        contains(github.event.release.assets[*].name, 'CmdPalCatPetExtension')
+      }}
+    
+    steps:
+      - name: Extract Cat Pet Extension info from release
+        id: extract-info
+        run: |
+          # Get all assets from the release
+          $assets = '${{ toJSON(github.event.release.assets) }}' | ConvertFrom-Json
+          
+          # Find the Cat Pet Extension MSIX file
+          $catPetAsset = $assets | Where-Object -Property name -match 'CmdPalCatPetExtension.*\.msix$'
+          
+          if ($null -eq $catPetAsset) {
+            Write-Error "No Cat Pet Extension MSIX found in release assets"
+            Write-Host "Available assets:"
+            $assets | ForEach-Object { Write-Host "  - $($_.name)" }
+            exit 1
+          }
+          
+          $msixUrl = $catPetAsset.browser_download_url
+          $packageVersion = ('${{ github.event.release.tag_name }}').Trim('v')
+          
+          # Extract version from MSIX filename if tag version doesn't work
+          if ([string]::IsNullOrEmpty($packageVersion) -or $packageVersion -eq '${{ github.event.release.tag_name }}') {
+            if ($catPetAsset.name -match 'CmdPalCatPetExtension_(\d+\.\d+\.\d+\.\d+)') {
+              $packageVersion = $matches[1]
+            } else {
+              Write-Error "Could not determine package version from tag or filename"
+              exit 1
+            }
+          }
+          
+          Write-Host "Found Cat Pet Extension:"
+          Write-Host "  Asset name: $($catPetAsset.name)"
+          Write-Host "  Package version: $packageVersion"
+          Write-Host "  MSIX URL: $msixUrl"
+          
+          # Set outputs for next step
+          echo "package_version=$packageVersion" >> $env:GITHUB_OUTPUT
+          echo "msix_url=$msixUrl" >> $env:GITHUB_OUTPUT
+
+      - name: Submit Cat Pet Extension to WinGet
+        run: |
+          $packageVersion = '${{ steps.extract-info.outputs.package_version }}'
+          $msixUrl = '${{ steps.extract-info.outputs.msix_url }}'
+          
+          Write-Host "Submitting to WinGet:"
+          Write-Host "  Package Version: $packageVersion"
+          Write-Host "  MSIX URL: $msixUrl"
+          
+          # Download wingetcreate
+          Write-Host "Downloading wingetcreate..."
+          curl.exe -JLO https://aka.ms/wingetcreate/latest
+          
+          # Submit package
+          if ($packageVersion -match '^0\.0\.') {
+            Write-Host "Creating new package (version starts with 0.0.x)..."
+            .\wingetcreate.exe new "$msixUrl" --submit
+          } else {
+            Write-Host "Updating existing package..."
+            .\wingetcreate.exe update JessicaDeneEarley-Cha.CmdPalCatPetExtension `
+              --version $packageVersion `
+              --urls "$msixUrl" `
+              --submit
+          }
+        
+      - name: Output result
+        if: always()
+        run: |
+          Write-Host "WinGet submission workflow completed."
+          Write-Host "Check the logs above for submission status."
