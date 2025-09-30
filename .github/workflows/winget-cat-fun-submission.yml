@@ -189,19 +189,27 @@ jobs:
             Copy-Item -Path "$packageDir\*" -Destination $destDir -Recurse -Force
             
             Write-Host "Verifying only Cat Fun Extension files are being added..."
-            $addedFiles = git ls-files --others --cached manifests/
+            # Check only the files we specifically added (new untracked files)
+            $addedFiles = git ls-files --others --exclude-standard
             Write-Host "Files to be committed:"
             $addedFiles | ForEach-Object { Write-Host "  $_" }
             
-            # Verify that only Cat Fun Extension files are present
-            $nonCatFunFiles = $addedFiles | Where-Object { $_ -notmatch "cmdpalcatfunextension" }
+            # Filter to only manifest files and verify they're Cat Fun Extension files
+            $manifestFiles = $addedFiles | Where-Object { $_ -like "manifests/*" }
+            $nonCatFunFiles = $manifestFiles | Where-Object { $_ -notmatch "cmdpalcatfunextension" }
+            
             if ($nonCatFunFiles) {
               Write-Error "ERROR: Non-Cat Fun Extension files detected:"
               $nonCatFunFiles | ForEach-Object { Write-Error "  $_" }
               exit 1
             }
             
-            Write-Host "Validation passed: Only Cat Fun Extension files found."
+            if ($manifestFiles.Count -eq 0) {
+              Write-Error "ERROR: No Cat Fun Extension manifest files found!"
+              exit 1
+            }
+            
+            Write-Host "Validation passed: Found $($manifestFiles.Count) Cat Fun Extension manifest files."
             
             # Commit and push
             Write-Host "Committing Cat Fun Extension manifests..."
