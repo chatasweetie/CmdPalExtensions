@@ -1,0 +1,181 @@
+name: Manual WinGet submission - Cat Fun Extension
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to submit (leave empty to auto-detect from latest release)'
+        required: false
+        type: string
+
+jobs:
+  submit-to-winget:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Get latest release
+      id: get_release
+      shell: pwsh
+      run: |
+        if ("${{ github.event.inputs.version }}" -ne "") {
+          $version = "${{ github.event.inputs.version }}"
+          Write-Host "Using provided version: $version"
+        } else {
+          # Look for the latest CmdPalCatFunExtension release
+          $releases = gh release list --repo $env:GITHUB_REPOSITORY --json tagName,name,publishedAt
+          $allReleases = $releases | ConvertFrom-Json
+          $catFunReleases = $allReleases | Where-Object { $_.tagName -like "*CmdPalCatFunExtension*" } | Sort-Object publishedAt -Descending
+          
+          if ($catFunReleases.Count -eq 0) {
+            throw "No CmdPalCatFunExtension releases found"
+          }
+          
+          $latestCatFunRelease = $catFunReleases[0]
+          $version = $latestCatFunRelease.tagName
+          Write-Host "Auto-detected latest Cat Fun release: $version"
+        }
+        
+        $assets = gh release view $version --repo $env:GITHUB_REPOSITORY --json assets
+        $assetsObj = $assets | ConvertFrom-Json
+        $msixAsset = $assetsObj.assets | Where-Object { $_.name -like "*CmdPalCatFunExtension*.msix" } | Select-Object -First 1
+        
+        if (-not $msixAsset) {
+          throw "No CmdPalCatFunExtension MSIX asset found in release $version"
+        }
+        
+        $downloadUrl = $msixAsset.url
+        $fileName = $msixAsset.name
+        
+        # Extract just the version number from the release tag (e.g., "CmdPalCatFunExtension/v0.0.2.0" -> "0.0.2.0")
+        $packageVersion = $version -replace '.*v(\d+\.\d+\.\d+\.\d+)', '$1'
+        
+        echo "release_tag=$version" >> $env:GITHUB_OUTPUT
+        echo "package_version=$packageVersion" >> $env:GITHUB_OUTPUT
+        echo "download_url=$downloadUrl" >> $env:GITHUB_OUTPUT
+        echo "file_name=$fileName" >> $env:GITHUB_OUTPUT
+        
+        Write-Host "Release tag: $version"
+        Write-Host "Package version: $packageVersion"
+        Write-Host "Download URL: $downloadUrl"
+        Write-Host "File name: $fileName"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create WinGet manifests
+      id: create_manifests
+      shell: pwsh
+      run: |
+        $releaseTag = "${{ steps.get_release.outputs.release_tag }}"
+        $packageVersion = "${{ steps.get_release.outputs.package_version }}"
+        $downloadUrl = "${{ steps.get_release.outputs.download_url }}"
+        $fileName = "${{ steps.get_release.outputs.file_name }}"
+        
+        # Package details for Cat Fun Extension
+        $packageIdentifier = "JessicaDeneEarley-Cha.CmdPalCatFunExtension"
+        $packageName = "Cat Fun"
+        $publisher = "Jessica Dene Earley-Cha"
+        $description = "A Command Palette extension that provides bite-sized cat entertainment — fun facts, photos, puns, and short phrases — directly inside the Command Palette."
+        $homepage = "https://github.com/chatasweetie/CmdPalExtensions"
+        $packageFamilyName = "JessicaDeneEarley-Cha.CmdPalCatFunExtension_9zz4h110yvjzm"
+        
+        # Download and hash the MSIX file
+        Write-Host "Downloading MSIX file to calculate hash..."
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $fileName -Headers @{
+          "Authorization" = "Bearer ${{ secrets.GITHUB_TOKEN }}"
+          "Accept" = "application/octet-stream"
+        }
+        
+        $hash = (Get-FileHash -Path $fileName -Algorithm SHA256).Hash
+        $fileSize = (Get-Item $fileName).Length
+        
+        Write-Host "File size: $fileSize bytes"
+        Write-Host "SHA256 hash: $hash"
+        
+        # Create manifests directory
+        $manifestDir = "winget-manifests"
+        $packageDir = "$manifestDir\manifests\j\jessicadeneearley-cha\cmdpalcatfunextension\$packageVersion"
+        New-Item -ItemType Directory -Path $packageDir -Force
+        
+        # Create version manifest content
+        $versionContent = "PackageIdentifier: $packageIdentifier`nPackageVersion: $packageVersion`nDefaultLocale: en-US`nManifestType: version`nManifestVersion: 1.6.0"
+        
+        # Create installer manifest content
+        $installerContent = "PackageIdentifier: $packageIdentifier`nPackageVersion: $packageVersion`nPlatform:`n- Windows.Desktop`nMinimumOSVersion: 10.0.19041.0`nScope: user`nInstallModes:`n- interactive`n- silent`nUpgradeBehavior: install`nDependencies:`n  PackageDependencies:`n  - PackageIdentifier: Microsoft.WindowsAppRuntime.1.6`n    MinimumVersion: 6.0.0.0`nPackageFamilyName: $packageFamilyName`nInstallers:`n- Architecture: x64`n  InstallerType: msix`n  InstallerUrl: $downloadUrl`n  InstallerSha256: $hash`n  InstallerSwitches:`n    Silent: --silent`n    SilentWithProgress: --silent`nManifestType: installer`nManifestVersion: 1.6.0"
+        
+        # Create locale manifest content
+        $localeContent = "PackageIdentifier: $packageIdentifier`nPackageVersion: $packageVersion`nPackageLocale: en-US`nPublisher: $publisher`nPublisherUrl: $homepage`nPublisherSupportUrl: https://github.com/chatasweetie/CmdPalExtensions/issues`nAuthor: $publisher`nPackageName: $packageName`nPackageUrl: $homepage`nLicense: MIT`nLicenseUrl: https://opensource.org/licenses/MIT`nCopyright: $publisher`nCopyrightUrl: https://github.com/chatasweetie/CmdPalExtensions/blob/main/LICENSE`nShortDescription: $description`nDescription: |-`n  Cat Fun is a Command Palette extension that integrates with the Windows Command Palette to deliver`n  bite-sized cat content instantly. Get a fun fact, a pun, or a cute photo — all without leaving your keyboard.`n  `n  Features:`n  • Shows random cat facts`n  • Displays cat photos`n  • Shows playful cat puns`n  • Interactive content delivery through Command Palette`nMoniker: cat-fun`nTags:`n- windows-commandpalette-extension`n- productivity`n- utility`n- cat`n- entertainment`n- fun`nManifestType: defaultLocale`nManifestVersion: 1.6.0"
+        
+        # Write manifest files
+        $versionContent | Out-File -FilePath "$packageDir\$packageIdentifier.yaml" -Encoding utf8
+        $installerContent | Out-File -FilePath "$packageDir\$packageIdentifier.installer.yaml" -Encoding utf8  
+        $localeContent | Out-File -FilePath "$packageDir\$packageIdentifier.locale.en-US.yaml" -Encoding utf8
+        
+        Write-Host "Created manifest files:"
+        Get-ChildItem -Path $packageDir -Recurse | ForEach-Object { Write-Host "  $($_.FullName)" }
+        
+        echo "package_dir=$packageDir" >> $env:GITHUB_OUTPUT
+        echo "manifest_dir=$manifestDir" >> $env:GITHUB_OUTPUT
+
+    - name: Submit to WinGet repository
+      shell: pwsh
+      run: |
+        $packageDir = "${{ steps.create_manifests.outputs.package_dir }}"
+        $manifestDir = "${{ steps.create_manifests.outputs.manifest_dir }}"
+        
+        # Configure git with token authentication
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        
+        Write-Host "Forking microsoft/winget-pkgs repository..."
+        try {
+          gh repo fork microsoft/winget-pkgs --clone=false --remote=false
+          Write-Host "Repository forked successfully"
+        }
+        catch {
+          Write-Host "Fork may already exist, continuing..."
+        }
+        
+        Write-Host "Cloning forked repository..."
+        $repoUrl = "https://x-access-token:${{ secrets.WINGET_TOKEN }}@github.com/${{ github.actor }}/winget-pkgs.git"
+        git clone $repoUrl winget-pkgs-fork
+        cd winget-pkgs-fork
+        
+        # Configure git to use token for pushes
+        git remote set-url origin $repoUrl
+        
+        Write-Host "Copying manifest files..."
+        $sourcePath = "..\$packageDir"
+        $targetPath = $packageDir -replace "winget-manifests\\", ""
+        
+        New-Item -ItemType Directory -Path $targetPath -Force
+        Copy-Item -Path "$sourcePath\*" -Destination $targetPath -Recurse -Force
+        
+        Write-Host "Adding and committing changes..."
+        git add .
+        git status
+        
+        $commitMessage = "Add ${{ steps.get_release.outputs.package_version }} version of Cat Fun Extension"
+        git commit -m $commitMessage
+        
+        Write-Host "Pushing changes..."
+        git push origin main
+        
+        Write-Host "Creating pull request..."
+        $prTitle = "New version: JessicaDeneEarley-Cha.CmdPalCatFunExtension version ${{ steps.get_release.outputs.package_version }}"
+        $prBody = "This PR adds version ${{ steps.get_release.outputs.package_version }} of Cat Fun Extension to the Windows Package Manager Community Repository.`n`nGenerated by GitHub Actions from https://github.com/chatasweetie/CmdPalExtensions"
+        
+        $prUrl = gh pr create --repo microsoft/winget-pkgs --title $prTitle --body $prBody --head "${{ github.actor }}:main"
+        Write-Host "Pull request created: $prUrl"
+        
+        echo "pr_url=$prUrl" >> $env:GITHUB_OUTPUT
+      env:
+        GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        
+    - name: Output result
+      if: always()
+      run: |
+        Write-Host "WinGet submission workflow completed for Cat Fun Extension."
+        Write-Host "Check the logs above for submission status."
