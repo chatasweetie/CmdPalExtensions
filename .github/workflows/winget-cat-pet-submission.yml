@@ -72,16 +72,15 @@ jobs:
           Write-Host "Downloading wingetcreate..."
           curl.exe -JLO https://aka.ms/wingetcreate/latest
           
-          # Submit package
+          # Submit package (no --submit flag needed, uses WINGET_CREATE_GITHUB_TOKEN env var)
           if ($packageVersion -match '^0\.0\.') {
             Write-Host "Creating new package (version starts with 0.0.x)..."
-            .\wingetcreate.exe new "$msixUrl" --submit
+            .\wingetcreate.exe new "$msixUrl"
           } else {
             Write-Host "Updating existing package..."
             .\wingetcreate.exe update JessicaDeneEarley-Cha.CmdPalCatPetExtension `
               --version $packageVersion `
-              --urls "$msixUrl" `
-              --submit
+              --urls "$msixUrl"
           }
         
       - name: Output result

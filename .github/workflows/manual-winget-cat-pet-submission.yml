@@ -69,6 +69,6 @@ jobs:
           Write-Host "Downloading wingetcreate..."
           curl.exe -JLO https://aka.ms/wingetcreate/latest
           
-          # Submit package
+          # Submit package (no --submit flag needed, uses WINGET_CREATE_GITHUB_TOKEN env var)
           Write-Host "Submitting package..."
-          .\wingetcreate.exe new "$msixUrl" --submit
+          .\wingetcreate.exe new "$msixUrl"
