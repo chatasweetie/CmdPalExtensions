@@ -71,7 +71,7 @@ jobs:
           # Create temporary directory for manifests
           $tempDir = New-TemporaryFile | ForEach-Object { Remove-Item $_; New-Item -ItemType Directory -Path $_ }
           $manifestsDir = Join-Path $tempDir "manifests"
-          $packageDir = Join-Path $manifestsDir "j" "jessicadeneearley-cha" "cmdpalcatfunextension" $packageVersion
+          $packageDir = Join-Path $manifestsDir "j" "JessicaDeneEarley-Cha" "CmdPalCatFunExtension" $packageVersion
           New-Item -ItemType Directory -Path $packageDir -Force
           
           # Download and calculate SHA256 hash
@@ -184,7 +184,7 @@ jobs:
             
             # Copy manifests to the repo
             Write-Host "Copying ONLY Cat Fun Extension manifests..."
-            $destDir = Join-Path "manifests" "j" "jessicadeneearley-cha" "cmdpalcatfunextension" $packageVersion
+            $destDir = Join-Path "manifests" "j" "JessicaDeneEarley-Cha" "CmdPalCatFunExtension" $packageVersion
             New-Item -ItemType Directory -Path $destDir -Force
             Copy-Item -Path "$packageDir\*" -Destination $destDir -Recurse -Force
             
@@ -196,7 +196,7 @@ jobs:
             
             # Filter to only manifest files and verify they're Cat Fun Extension files
             $manifestFiles = $addedFiles | Where-Object { $_ -like "manifests/*" }
-            $nonCatFunFiles = $manifestFiles | Where-Object { $_ -notmatch "cmdpalcatfunextension" }
+            $nonCatFunFiles = $manifestFiles | Where-Object { $_ -notmatch "CmdPalCatFunExtension" }
             
             if ($nonCatFunFiles) {
               Write-Error "ERROR: Non-Cat Fun Extension files detected:"
@@ -215,7 +215,7 @@ jobs:
             Write-Host "Committing Cat Fun Extension manifests..."
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add manifests/j/jessicadeneearley-cha/cmdpalcatfunextension/
+            git add manifests/j/JessicaDeneEarley-Cha/CmdPalCatFunExtension/
             git commit -m "New package: JessicaDeneEarley-Cha.CmdPalCatFunExtension version $packageVersion"
             
             Write-Host "Setting up authentication and pushing to personal fork..."

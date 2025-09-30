@@ -96,7 +96,7 @@ jobs:
         
         # Create manifests directory
         $manifestDir = "winget-manifests"
-        $packageDir = "$manifestDir\manifests\j\jessicadeneearley-cha\cmdpalcatfunextension\$packageVersion"
+        $packageDir = "$manifestDir\manifests\j\JessicaDeneEarley-Cha\CmdPalCatFunExtension\$packageVersion"
         New-Item -ItemType Directory -Path $packageDir -Force
         
         # Create version manifest content
@@ -161,7 +161,7 @@ jobs:
         
         # Filter to only manifest files and verify they're Cat Fun Extension files
         $manifestFiles = $addedFiles | Where-Object { $_ -like "manifests/*" }
-        $nonCatFunFiles = $manifestFiles | Where-Object { $_ -notmatch "cmdpalcatfunextension" }
+        $nonCatFunFiles = $manifestFiles | Where-Object { $_ -notmatch "CmdPalCatFunExtension" }
         
         if ($nonCatFunFiles) {
           Write-Error "ERROR: Non-Cat Fun Extension files detected:"
@@ -177,7 +177,7 @@ jobs:
         Write-Host "Validation passed: Found $($manifestFiles.Count) Cat Fun Extension manifest files."
         
         Write-Host "Adding and committing Cat Fun Extension files only..."
-        git add manifests/j/jessicadeneearley-cha/cmdpalcatfunextension/
+        git add manifests/j/JessicaDeneEarley-Cha/CmdPalCatFunExtension/
         
         $commitMessage = "Add JessicaDeneEarley-Cha.CmdPalCatFunExtension version ${{ steps.get_release.outputs.package_version }}"
         git commit -m $commitMessage
