@@ -1,4 +1,4 @@
-name: WinGet submission - Cat Fun Extension
+name: "WinGet submission - Cat Fun Extension"
 
 on:
   release:
