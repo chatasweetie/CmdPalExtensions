@@ -79,7 +79,7 @@ jobs:
         $publisher = "Jessica Dene Earley-Cha"
         $description = "A Command Palette extension that provides bite-sized cat entertainment — fun facts, photos, puns, and short phrases — directly inside the Command Palette."
         $homepage = "https://github.com/chatasweetie/CmdPalExtensions"
-        $packageFamilyName = "JessicaDeneEarley-Cha.CmdPalCatFunExtension_d5hz9k63v5at4"
+        $packageFamilyName = "JessicaDeneEarley-Cha.CmdPalCatFunExtension_27a370594b"
         
         # Download and hash the MSIX file
         Write-Host "Downloading MSIX file to calculate hash..."

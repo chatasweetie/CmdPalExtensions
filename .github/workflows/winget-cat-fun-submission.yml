@@ -112,12 +112,11 @@ Dependencies:
   PackageDependencies:
   - PackageIdentifier: Microsoft.WindowsAppRuntime.1.7
     MinimumVersion: 7000.456.1632.0
-PackageFamilyName: JessicaDeneEarley-Cha.CmdPalCatFunExtension_d5hz9k63v5at4
+PackageFamilyName: JessicaDeneEarley-Cha.CmdPalCatFunExtension_27a370594b
 Installers:
 - Architecture: x64
   InstallerUrl: $msixUrl
   InstallerSha256: $sha256Hash
-  SignatureSha256: $sha256Hash
 ManifestType: installer
 ManifestVersion: 1.4.0
 "@
