@@ -1,4 +1,4 @@
-name: "WinGet submission - Cat Fun Extension"
+name: WinGet submission - Cat Fun Extension
 
 on:
   release:
@@ -84,20 +84,20 @@ jobs:
           Write-Host "SHA256 hash: $sha256Hash"
           
           # Create version manifest
-          $versionContent = @"
+          $versionContent = @'
 PackageIdentifier: JessicaDeneEarley-Cha.CmdPalCatFunExtension
-PackageVersion: $packageVersion
+PackageVersion: {0}
 DefaultLocale: en-US
 ManifestType: version
 ManifestVersion: 1.4.0
-"@
+'@ -f $packageVersion
           
           $versionContent | Out-File -FilePath (Join-Path $packageDir "JessicaDeneEarley-Cha.CmdPalCatFunExtension.yaml") -Encoding UTF8
           
           # Create installer manifest
-          $installerContent = @"
+          $installerContent = @'
 PackageIdentifier: JessicaDeneEarley-Cha.CmdPalCatFunExtension
-PackageVersion: $packageVersion
+PackageVersion: {0}
 InstallerLocale: en-US
 Platform:
 - Windows.Desktop
@@ -115,18 +115,18 @@ Dependencies:
 PackageFamilyName: JessicaDeneEarley-Cha.CmdPalCatFunExtension_27a370594b
 Installers:
 - Architecture: x64
-  InstallerUrl: $msixUrl
-  InstallerSha256: $sha256Hash
+  InstallerUrl: {1}
+  InstallerSha256: {2}
 ManifestType: installer
 ManifestVersion: 1.4.0
-"@
+'@ -f $packageVersion, $msixUrl, $sha256Hash
           
           $installerContent | Out-File -FilePath (Join-Path $packageDir "JessicaDeneEarley-Cha.CmdPalCatFunExtension.installer.yaml") -Encoding UTF8
           
           # Create locale manifest
-          $localeContent = @"
+          $localeContent = @'
 PackageIdentifier: JessicaDeneEarley-Cha.CmdPalCatFunExtension
-PackageVersion: $packageVersion
+PackageVersion: {0}
 PackageLocale: en-US
 Publisher: Jessica Dene Earley-Cha
 PublisherUrl: https://github.com/chatasweetie
@@ -158,7 +158,7 @@ Tags:
 - productivity
 ManifestType: defaultLocale
 ManifestVersion: 1.4.0
-"@
+'@ -f $packageVersion
           
           $localeContent | Out-File -FilePath (Join-Path $packageDir "JessicaDeneEarley-Cha.CmdPalCatFunExtension.locale.en-US.yaml") -Encoding UTF8
           

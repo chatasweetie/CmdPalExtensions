@@ -1,4 +1,4 @@
-name: "Manual WinGet submission - Cat Fun Extension"
+name: Manual WinGet submission - Cat Fun Extension
 
 on:
   workflow_dispatch:
@@ -105,7 +105,7 @@ PackageIdentifier: $packageIdentifier
 PackageVersion: $packageVersion
 DefaultLocale: en-US
 ManifestType: version
-ManifestVersion: 1.6.0
+ManifestVersion: 1.4.0
 "@
         
         # Create installer manifest
@@ -131,7 +131,7 @@ Installers:
   InstallerUrl: $downloadUrl
   InstallerSha256: $hash
 ManifestType: installer
-ManifestVersion: 1.6.0
+ManifestVersion: 1.4.0
 "@
         
         # Create locale manifest
@@ -168,7 +168,7 @@ Tags:
 - entertainment
 - fun
 ManifestType: defaultLocale
-ManifestVersion: 1.6.0
+ManifestVersion: 1.4.0
 "@
         
         # Write manifest files
