@@ -100,76 +100,76 @@ jobs:
         New-Item -ItemType Directory -Path $packageDir -Force
         
         # Create version manifest
-        $versionContent = @"
-PackageIdentifier: $packageIdentifier
-PackageVersion: $packageVersion
-DefaultLocale: en-US
-ManifestType: version
-ManifestVersion: 1.4.0
-"@
+        $versionContent = @(
+          "PackageIdentifier: $packageIdentifier",
+          "PackageVersion: $packageVersion", 
+          "DefaultLocale: en-US",
+          "ManifestType: version",
+          "ManifestVersion: 1.4.0"
+        ) -join "`n"
         
         # Create installer manifest
-        $installerContent = @"
-PackageIdentifier: $packageIdentifier
-PackageVersion: $packageVersion
-Platform:
-- Windows.Desktop
-MinimumOSVersion: 10.0.19041.0
-Scope: user
-InstallModes:
-- interactive
-- silent
-UpgradeBehavior: install
-Dependencies:
-  PackageDependencies:
-  - PackageIdentifier: Microsoft.WindowsAppRuntime.1.7
-    MinimumVersion: 7000.456.1632.0
-PackageFamilyName: $packageFamilyName
-Installers:
-- Architecture: x64
-  InstallerType: msix
-  InstallerUrl: $downloadUrl
-  InstallerSha256: $hash
-ManifestType: installer
-ManifestVersion: 1.4.0
-"@
+        $installerContent = @(
+          "PackageIdentifier: $packageIdentifier",
+          "PackageVersion: $packageVersion",
+          "Platform:",
+          "- Windows.Desktop", 
+          "MinimumOSVersion: 10.0.19041.0",
+          "Scope: user",
+          "InstallModes:",
+          "- interactive",
+          "- silent",
+          "UpgradeBehavior: install",
+          "Dependencies:",
+          "  PackageDependencies:",
+          "  - PackageIdentifier: Microsoft.WindowsAppRuntime.1.7",
+          "    MinimumVersion: 7000.456.1632.0",
+          "PackageFamilyName: $packageFamilyName",
+          "Installers:",
+          "- Architecture: x64",
+          "  InstallerType: msix",
+          "  InstallerUrl: $downloadUrl",
+          "  InstallerSha256: $hash",
+          "ManifestType: installer",
+          "ManifestVersion: 1.4.0"
+        ) -join "`n"
         
         # Create locale manifest
-        $localeContent = @"
-PackageIdentifier: $packageIdentifier
-PackageVersion: $packageVersion
-PackageLocale: en-US
-Publisher: $publisher
-PublisherUrl: $homepage
-PublisherSupportUrl: https://github.com/chatasweetie/CmdPalExtensions/issues
-Author: $publisher
-PackageName: $packageName
-PackageUrl: $homepage
-License: MIT
-LicenseUrl: https://opensource.org/licenses/MIT
-Copyright: $publisher
-CopyrightUrl: https://github.com/chatasweetie/CmdPalExtensions/blob/main/LICENSE
-ShortDescription: $description
-Description: |-
-  Cat Fun is a Command Palette extension that integrates with the Windows Command Palette to deliver
-  bite-sized cat content instantly. Get a fun fact, a pun, or a cute photo — all without leaving your keyboard.
-  
-  Features:
-  • Shows random cat facts
-  • Displays cat photos
-  • Shows playful cat puns
-  • Interactive content delivery through Command Palette
-Moniker: cat-fun
-Tags:
-- windows-commandpalette-extension
-- productivity
-- utility
-- cat
-- entertainment
-- fun
-ManifestType: defaultLocale
-ManifestVersion: 1.4.0
-"@
+        $localeContent = @(
+          "PackageIdentifier: $packageIdentifier",
+          "PackageVersion: $packageVersion",
+          "PackageLocale: en-US",
+          "Publisher: $publisher",
+          "PublisherUrl: $homepage",
+          "PublisherSupportUrl: https://github.com/chatasweetie/CmdPalExtensions/issues",
+          "Author: $publisher",
+          "PackageName: $packageName", 
+          "PackageUrl: $homepage",
+          "License: MIT",
+          "LicenseUrl: https://opensource.org/licenses/MIT",
+          "Copyright: $publisher",
+          "CopyrightUrl: https://github.com/chatasweetie/CmdPalExtensions/blob/main/LICENSE",
+          "ShortDescription: $description",
+          "Description: |-",
+          "  Cat Fun is a Command Palette extension that integrates with the Windows Command Palette to deliver",
+          "  bite-sized cat content instantly. Get a fun fact, a pun, or a cute photo — all without leaving your keyboard.",
+          "  ",
+          "  Features:",
+          "  • Shows random cat facts",
+          "  • Displays cat photos",
+          "  • Shows playful cat puns", 
+          "  • Interactive content delivery through Command Palette",
+          "Moniker: cat-fun",
+          "Tags:",
+          "- windows-commandpalette-extension",
+          "- productivity",
+          "- utility",
+          "- cat", 
+          "- entertainment",
+          "- fun",
+          "ManifestType: defaultLocale",
+          "ManifestVersion: 1.4.0"
+        ) -join "`n"
         
         # Write manifest files
         $versionContent | Out-File -FilePath "$packageDir\$packageIdentifier.yaml" -Encoding utf8
