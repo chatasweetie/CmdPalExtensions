@@ -40,9 +40,11 @@ jobs:
           $msixUrl = $catFunAsset.browser_download_url
           $packageVersion = ('${{ github.event.release.tag_name }}').Trim('v')
           
-          # Extract version from MSIX filename if tag version doesn't work
-          if ([string]::IsNullOrEmpty($packageVersion) -or $packageVersion -eq '${{ github.event.release.tag_name }}') {
-            if ($catFunAsset.name -match 'CmdPalCatFunExtension_(\d+\.\d+\.\d+\.\d+)') {
+          # Extract version from tag (e.g., "CmdPalCatFunExtension-v0.0.2.0" -> "0.0.2.0")
+          if ($packageVersion -eq '${{ github.event.release.tag_name }}' -or [string]::IsNullOrEmpty($packageVersion)) {
+            if ('${{ github.event.release.tag_name }}' -match 'CmdPalCatFunExtension-v(\d+\.\d+\.\d+\.\d+)') {
+              $packageVersion = $matches[1]
+            } elseif ($catFunAsset.name -match 'CmdPalCatFunExtension_(\d+\.\d+\.\d+\.\d+)') {
               $packageVersion = $matches[1]
             } else {
               Write-Error "Could not determine package version from tag or filename"
