@@ -4,7 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to submit (leave empty to auto-detect from latest release)'
+        description: 'Ver          "InstallerSha256: $hash",
+          "ManifestType: installer",
+          "ManifestVersion: 1.5.0"n to submit (leave empty to auto-detect from latest release)'
         required: false
         type: string
 
@@ -109,7 +111,7 @@ jobs:
           "PackageVersion: $packageVersion", 
           "DefaultLocale: en-US",
           "ManifestType: version",
-          "ManifestVersion: 1.4.0"
+          "ManifestVersion: 1.5.0"
         ) -join "`n"
         
         # Create installer manifest
@@ -172,7 +174,7 @@ jobs:
           "- entertainment",
           "- fun",
           "ManifestType: defaultLocale",
-          "ManifestVersion: 1.4.0"
+          "ManifestVersion: 1.5.0"
         ) -join "`n"
         
         # Write manifest files
