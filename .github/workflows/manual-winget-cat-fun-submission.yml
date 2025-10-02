@@ -50,7 +50,7 @@ jobs:
         $fileName = $msixAsset.name
         
         # Extract just the version number from the release tag (e.g., "CmdPalCatFunExtension-v0.0.2.0" -> "0.0.2.0")
-        $packageVersion = $version -replace '.*-v(\d+\.\d+\.\d+\.\d+)', '$1'
+        $packageVersion = ($version -replace '.*-v(\d+\.\d+\.\d+\.\d+)', '$1').Trim()
         
         echo "release_tag=$version" >> $env:GITHUB_OUTPUT
         echo "package_version=$packageVersion" >> $env:GITHUB_OUTPUT
@@ -69,7 +69,7 @@ jobs:
       shell: pwsh
       run: |
         $releaseTag = "${{ steps.get_release.outputs.release_tag }}"
-        $packageVersion = "${{ steps.get_release.outputs.package_version }}"
+        $packageVersion = "${{ steps.get_release.outputs.package_version }}".Trim()
         $downloadUrl = "${{ steps.get_release.outputs.download_url }}"
         $fileName = "${{ steps.get_release.outputs.file_name }}"
         
