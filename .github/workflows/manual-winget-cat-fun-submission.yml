@@ -127,7 +127,7 @@ jobs:
           "Dependencies:",
           "  PackageDependencies:",
           "  - PackageIdentifier: Microsoft.WindowsAppRuntime.1.7",
-          "    MinimumVersion: 7000.456.1632.0",
+          "    MinimumVersion: 1.7.0",
           "PackageFamilyName: $packageFamilyName",
           "Installers:",
           "- Architecture: x64",
