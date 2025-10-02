@@ -38,18 +38,25 @@ jobs:
           }
           
           $msixUrl = $catFunAsset.browser_download_url
-          $packageVersion = ('${{ github.event.release.tag_name }}').Trim('v')
           
-          # Extract version from tag (e.g., "CmdPalCatFunExtension-v0.0.2.0" -> "0.0.2.0")
-          if ($packageVersion -eq '${{ github.event.release.tag_name }}' -or [string]::IsNullOrEmpty($packageVersion)) {
-            if ('${{ github.event.release.tag_name }}' -match 'CmdPalCatFunExtension-v(\d+\.\d+\.\d+\.\d+)') {
-              $packageVersion = $matches[1]
-            } elseif ($catFunAsset.name -match 'CmdPalCatFunExtension_(\d+\.\d+\.\d+\.\d+)') {
-              $packageVersion = $matches[1]
-            } else {
-              Write-Error "Could not determine package version from tag or filename"
-              exit 1
-            }
+          # Extract version from tag or filename
+          $packageVersion = $null
+          
+          # Try to extract version from tag (e.g., "CmdPalCatFunExtension-v0.0.2.0" -> "0.0.2.0")
+          if ('${{ github.event.release.tag_name }}' -match 'CmdPalCatFunExtension-v(\d+\.\d+\.\d+\.\d+)') {
+            $packageVersion = $matches[1]
+          }
+          # Try to extract from filename (e.g., "CmdPalCatFunExtension_0.0.2.0_Store.msix" -> "0.0.2.0")
+          elseif ($catFunAsset.name -match 'CmdPalCatFunExtension_(\d+\.\d+\.\d+\.\d+)') {
+            $packageVersion = $matches[1]
+          }
+          # Handle simple tag like "CmdPalCatFunExtension" - extract from filename only
+          elseif ('${{ github.event.release.tag_name }}' -eq 'CmdPalCatFunExtension' -and $catFunAsset.name -match 'CmdPalCatFunExtension_(\d+\.\d+\.\d+\.\d+)') {
+            $packageVersion = $matches[1]
+          }
+          else {
+            Write-Error "Could not determine package version from tag '${{ github.event.release.tag_name }}' or filename '$($catFunAsset.name)'"
+            exit 1
           }
           
           Write-Host "Found Cat Fun Extension:"
