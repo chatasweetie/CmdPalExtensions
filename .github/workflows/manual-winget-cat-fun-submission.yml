@@ -49,8 +49,12 @@ jobs:
         $downloadUrl = $msixAsset.url
         $fileName = $msixAsset.name
         
-        # Extract just the version number from the release tag (e.g., "CmdPalCatFunExtension-v0.0.2.0" -> "0.0.2.0")
-        $packageVersion = ($version -replace '.*-v(\d+\.\d+\.\d+\.\d+)', '$1').Trim()
+        # Extract version number from the MSIX filename (e.g., "CmdPalCatFunExtension_0.0.2.0_Store.msix" -> "0.0.2.0")
+        if ($fileName -match "CmdPalCatFunExtension_(\d+\.\d+\.\d+\.\d+)_") {
+          $packageVersion = $matches[1].Trim()
+        } else {
+          throw "Could not extract version from MSIX filename: $fileName"
+        }
         
         echo "release_tag=$version" >> $env:GITHUB_OUTPUT
         echo "package_version=$packageVersion" >> $env:GITHUB_OUTPUT
