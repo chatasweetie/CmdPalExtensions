@@ -126,17 +126,15 @@ jobs:
           Write-Host "Attempting to create new package manifest..."
           & $wingetcreate new `
             $installerUrl `
-            --id $packageId `
-            --version $version `
             --token ${{ secrets.GITHUB_TOKEN }} `
             --submit
           Write-Host "✓ Successfully created new package"
         }
         catch {
           Write-Host "New package creation failed, trying update..."
-          # Fallback to update if package already exists
+          # Fallback to update if package already exists  
           & $wingetcreate update `
-            --id $packageId `
+            $packageId `
             --version $version `
             --urls $installerUrl `
             --token ${{ secrets.GITHUB_TOKEN }} `
