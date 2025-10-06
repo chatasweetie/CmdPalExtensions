@@ -1,29 +1,94 @@
 name: Submit CmdPalCatFunExtension EXE to WinGet
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version of the installer to submit to WinGet'
-        required: true
-        default: '0.0.2.0'
+        description: 'Version of the installer to submit to WinGet (optional - will auto-detect from release)'
+        required: false
         type: string
       installer_url:
-        description: 'URL to the EXE installer'
-        required: true
+        description: 'URL to the EXE installer (optional - will auto-detect from release)'
+        required: false
         type: string
       installer_sha256:
-        description: 'SHA256 hash of the EXE installer'
-        required: true
+        description: 'SHA256 hash of the EXE installer (optional - will auto-calculate)'
+        required: false
         type: string
 
 jobs:
   submit-to-winget:
     runs-on: windows-latest
     
+    # Only run for CmdPalCatFunExtension releases or manual dispatch
+    if: |
+      ${{ 
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'release' && 
+         !github.event.release.prerelease && 
+         contains(github.event.release.tag_name, 'CmdPalCatFunExtension'))
+      }}
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+    
+    - name: Extract Cat Fun Extension info from release
+      id: extract-info
+      if: github.event_name == 'release'
+      run: |
+        # Get all assets from the release
+        $assets = '${{ toJSON(github.event.release.assets) }}' | ConvertFrom-Json
+        
+        # Find the Cat Fun Extension EXE file
+        $catFunAsset = $assets | Where-Object -Property name -match 'CmdPalCatFunExtension.*Setup.*\.exe$'
+        
+        if ($null -eq $catFunAsset) {
+          Write-Error "No Cat Fun Extension EXE installer found in release assets"
+          Write-Host "Available assets:"
+          $assets | ForEach-Object { Write-Host "  - $($_.name)" }
+          exit 1
+        }
+        
+        $installerUrl = $catFunAsset.browser_download_url
+        
+        # Extract version from tag or filename
+        $packageVersion = $null
+        
+        # Try to extract version from tag (e.g., "CmdPalCatFunExtension-v0.0.2.0" -> "0.0.2.0")
+        if ('${{ github.event.release.tag_name }}' -match 'CmdPalCatFunExtension-v(\d+\.\d+\.\d+\.\d+)') {
+          $packageVersion = $matches[1]
+        }
+        # Try to extract from filename (e.g., "CmdPalCatFunExtension-Setup-0.0.2.0.exe" -> "0.0.2.0")
+        elseif ($catFunAsset.name -match 'CmdPalCatFunExtension-Setup-(\d+\.\d+\.\d+\.\d+)\.exe') {
+          $packageVersion = $matches[1]
+        }
+        else {
+          Write-Error "Could not determine package version from tag '${{ github.event.release.tag_name }}' or filename '$($catFunAsset.name)'"
+          exit 1
+        }
+        
+        Write-Host "Found Cat Fun Extension EXE installer:"
+        Write-Host "  Asset name: $($catFunAsset.name)"
+        Write-Host "  Package version: $packageVersion"
+        Write-Host "  Installer URL: $installerUrl"
+        
+        # Download and calculate SHA256
+        Write-Host "Downloading installer to calculate SHA256..."
+        $tempFile = "$env:TEMP\$($catFunAsset.name)"
+        Invoke-WebRequest -Uri $installerUrl -OutFile $tempFile
+        $sha256 = (Get-FileHash -Path $tempFile -Algorithm SHA256).Hash
+        Remove-Item $tempFile -Force
+        
+        Write-Host "  SHA256: $sha256"
+        
+        # Set outputs for next step
+        echo "package_version=$packageVersion" >> $env:GITHUB_OUTPUT
+        echo "installer_url=$installerUrl" >> $env:GITHUB_OUTPUT
+        echo "installer_sha256=$sha256" >> $env:GITHUB_OUTPUT
+      shell: pwsh
     
     - name: Setup wingetcreate
       run: |
@@ -38,9 +103,17 @@ jobs:
       run: |
         $wingetcreate = "$env:TEMP\wingetcreate\wingetcreate.exe"
         $packageId = "JessicaDeneEarley-Cha.CmdPalCatFunExtension"
-        $version = "${{ github.event.inputs.version }}"
-        $installerUrl = "${{ github.event.inputs.installer_url }}"
-        $installerSha256 = "${{ github.event.inputs.installer_sha256 }}"
+        
+        # Use extracted info from release or manual inputs
+        if ("${{ github.event_name }}" -eq "release") {
+          $version = "${{ steps.extract-info.outputs.package_version }}"
+          $installerUrl = "${{ steps.extract-info.outputs.installer_url }}"
+          $installerSha256 = "${{ steps.extract-info.outputs.installer_sha256 }}"
+        } else {
+          $version = "${{ github.event.inputs.version }}"
+          $installerUrl = "${{ github.event.inputs.installer_url }}"
+          $installerSha256 = "${{ github.event.inputs.installer_sha256 }}"
+        }
         
         Write-Host "Creating WinGet manifest for EXE installer..."
         Write-Host "Package ID: $packageId"
@@ -80,9 +153,17 @@ jobs:
         Write-Host "Creating manual manifests as fallback..."
         
         $packageId = "JessicaDeneEarley-Cha.CmdPalCatFunExtension"
-        $version = "${{ github.event.inputs.version }}"
-        $installerUrl = "${{ github.event.inputs.installer_url }}"
-        $installerSha256 = "${{ github.event.inputs.installer_sha256 }}"
+        
+        # Use extracted info from release or manual inputs
+        if ("${{ github.event_name }}" -eq "release") {
+          $version = "${{ steps.extract-info.outputs.package_version }}"
+          $installerUrl = "${{ steps.extract-info.outputs.installer_url }}"
+          $installerSha256 = "${{ steps.extract-info.outputs.installer_sha256 }}"
+        } else {
+          $version = "${{ github.event.inputs.version }}"
+          $installerUrl = "${{ github.event.inputs.installer_url }}"
+          $installerSha256 = "${{ github.event.inputs.installer_sha256 }}"
+        }
         
         # Create version manifest
         $versionContent = @(
