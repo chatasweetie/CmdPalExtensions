@@ -1,0 +1,187 @@
+name: Submit CmdPalCatFunExtension EXE to WinGet
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version of the installer to submit to WinGet'
+        required: true
+        default: '0.0.2.0'
+        type: string
+      installer_url:
+        description: 'URL to the EXE installer'
+        required: true
+        type: string
+      installer_sha256:
+        description: 'SHA256 hash of the EXE installer'
+        required: true
+        type: string
+
+jobs:
+  submit-to-winget:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup wingetcreate
+      run: |
+        Write-Host "Installing wingetcreate..."
+        Invoke-WebRequest -Uri "https://aka.ms/wingetcreate/latest" -OutFile "$env:TEMP\wingetcreate.exe"
+        New-Item -ItemType Directory -Path "$env:TEMP\wingetcreate" -Force | Out-Null
+        Move-Item -Path "$env:TEMP\wingetcreate.exe" -Destination "$env:TEMP\wingetcreate\wingetcreate.exe"
+        Write-Host "wingetcreate installed to: $env:TEMP\wingetcreate\wingetcreate.exe"
+      shell: pwsh
+    
+    - name: Create WinGet manifest with wingetcreate
+      run: |
+        $wingetcreate = "$env:TEMP\wingetcreate\wingetcreate.exe"
+        $packageId = "JessicaDeneEarley-Cha.CmdPalCatFunExtension"
+        $version = "${{ github.event.inputs.version }}"
+        $installerUrl = "${{ github.event.inputs.installer_url }}"
+        $installerSha256 = "${{ github.event.inputs.installer_sha256 }}"
+        
+        Write-Host "Creating WinGet manifest for EXE installer..."
+        Write-Host "Package ID: $packageId"
+        Write-Host "Version: $version"
+        Write-Host "Installer URL: $installerUrl"
+        Write-Host "SHA256: $installerSha256"
+        
+        # Try wingetcreate new first (for new packages)
+        try {
+          Write-Host "Attempting to create new package manifest..."
+          & $wingetcreate new `
+            $installerUrl `
+            --id $packageId `
+            --version $version `
+            --token ${{ secrets.GITHUB_TOKEN }} `
+            --submit
+          Write-Host "✓ Successfully created new package"
+        }
+        catch {
+          Write-Host "New package creation failed, trying update..."
+          # Fallback to update if package already exists
+          & $wingetcreate update `
+            --id $packageId `
+            --version $version `
+            --urls $installerUrl `
+            --token ${{ secrets.GITHUB_TOKEN }} `
+            --submit
+          Write-Host "✓ Successfully updated existing package"
+        }
+      shell: pwsh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Create manual manifests (fallback)
+      if: failure()
+      run: |
+        Write-Host "Creating manual manifests as fallback..."
+        
+        $packageId = "JessicaDeneEarley-Cha.CmdPalCatFunExtension"
+        $version = "${{ github.event.inputs.version }}"
+        $installerUrl = "${{ github.event.inputs.installer_url }}"
+        $installerSha256 = "${{ github.event.inputs.installer_sha256 }}"
+        
+        # Create version manifest
+        $versionContent = @(
+          "# yaml-language-server: `$schema=https://aka.ms/winget-manifest.version.1.6.0.schema.json",
+          "",
+          "PackageIdentifier: $packageId", 
+          "PackageVersion: $version",
+          "DefaultLocale: en-US",
+          "ManifestType: version",
+          "ManifestVersion: 1.6.0"
+        ) -join "`n"
+        
+        # Create installer manifest with EXE installer and WindowsAppRuntime dependency
+        $installerContent = @(
+          "# yaml-language-server: `$schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json",
+          "",
+          "PackageIdentifier: $packageId",
+          "PackageVersion: $version",
+          "Installers:",
+          "- Architecture: x64",
+          "  InstallerType: inno", 
+          "  InstallerUrl: $installerUrl",
+          "  InstallerSha256: $installerSha256",
+          "  Scope: machine",
+          "  InstallModes:",
+          "  - silent",
+          "  - interactive", 
+          "  UpgradeBehavior: install",
+          "  ProductCode: `"{CF8B2A5D-8B4E-4E9A-9F7C-3D2A1B0C5E8F}_is1`"",
+          "  Dependencies:",
+          "    PackageDependencies:",
+          "    - PackageIdentifier: Microsoft.WindowsAppRuntime.1.7",
+          "ManifestType: installer",
+          "ManifestVersion: 1.6.0"
+        ) -join "`n"
+        
+        # Create locale manifest with Command Palette tag
+        $localeContent = @(
+          "# yaml-language-server: `$schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json",
+          "",
+          "PackageIdentifier: $packageId",
+          "PackageVersion: $version", 
+          "PackageLocale: en-US",
+          "Publisher: jearleycha",
+          "PublisherUrl: https://github.com/chatasweetie",
+          "PublisherSupportUrl: https://github.com/chatasweetie/CmdPalExtensions/issues",
+          "PackageName: Command Palette Cat Fun Extension",
+          "PackageUrl: https://github.com/chatasweetie/CmdPalExtensions",
+          "License: MIT",
+          "LicenseUrl: https://github.com/chatasweetie/CmdPalExtensions/blob/main/LICENSE",
+          "ShortDescription: A fun cat-themed extension for Windows Command Palette that displays random cat facts.",
+          "Description: >",
+          "  The CmdPal Cat Fun Extension adds delightful cat-related functionality to Windows Command Palette.",
+          "  It provides an interactive experience with random cat facts, ASCII cat art, and cat-themed jokes.",
+          "  This extension integrates seamlessly with Windows Command Palette to bring some feline fun to your workflow.",
+          "Moniker: cmdpal-cat-fun",
+          "Tags:",
+          "- command-palette",
+          "- cat", 
+          "- fun",
+          "- windows",
+          "- extension",
+          "- animals",
+          "- facts",
+          "- entertainment", 
+          "- windows-commandpalette-extension",
+          "ManifestType: defaultLocale",
+          "ManifestVersion: 1.6.0"
+        ) -join "`n"
+        
+        # Save manifests
+        $versionContent | Out-File -FilePath "$packageId.yaml" -Encoding UTF8
+        $installerContent | Out-File -FilePath "$packageId.installer.yaml" -Encoding UTF8  
+        $localeContent | Out-File -FilePath "$packageId.locale.en-US.yaml" -Encoding UTF8
+        
+        Write-Host "Manual manifests created:"
+        Write-Host "✓ $packageId.yaml"
+        Write-Host "✓ $packageId.installer.yaml" 
+        Write-Host "✓ $packageId.locale.en-US.yaml"
+        
+        Write-Host "`n--- Installer Manifest (with WindowsAppRuntime dependency) ---"
+        Get-Content "$packageId.installer.yaml"
+        
+        Write-Host "`n--- Locale Manifest (with Command Palette tag) ---"
+        Get-Content "$packageId.locale.en-US.yaml"
+        
+        Write-Host "`n`nTo submit manually to WinGet:"
+        Write-Host "1. Fork the winget-pkgs repository: https://github.com/microsoft/winget-pkgs"
+        Write-Host "2. Create a folder: manifests/j/JessicaDeneEarley-Cha/CmdPalCatFunExtension/$version/"
+        Write-Host "3. Copy these 3 manifest files to that folder"
+        Write-Host "4. Create a pull request"
+      shell: pwsh
+    
+    - name: Upload manifest artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: winget-manifests-exe
+        path: |
+          JessicaDeneEarley-Cha.CmdPalCatFunExtension*.yaml
+          winget-manifest-exe-*.yaml
+        if-no-files-found: ignore
