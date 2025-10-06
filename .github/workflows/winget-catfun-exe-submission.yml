@@ -126,9 +126,28 @@ jobs:
           Write-Host "Attempting to create new package manifest..."
           & $wingetcreate new `
             $installerUrl `
-            --token ${{ secrets.GITHUB_TOKEN }} `
-            --submit
-          Write-Host "✓ Successfully created new package"
+            --out "manifests" `
+            --format yaml
+          
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "✓ Successfully created manifests locally"
+            
+            # Submit the generated manifests
+            Write-Host "Submitting to WinGet repository..."
+            & $wingetcreate submit `
+              --prtitle "New package: $packageId version $version" `
+              --token ${{ secrets.GITHUB_TOKEN }} `
+              "manifests"
+            
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✓ Successfully submitted to WinGet"
+            } else {
+              Write-Host "Failed to submit to WinGet repository"
+              throw "Submission failed"
+            }
+          } else {
+            throw "Failed to create manifests"
+          }
         }
         catch {
           Write-Host "New package creation failed, trying update..."
@@ -137,9 +156,29 @@ jobs:
             $packageId `
             --version $version `
             --urls $installerUrl `
-            --token ${{ secrets.GITHUB_TOKEN }} `
-            --submit
-          Write-Host "✓ Successfully updated existing package"
+            --out "manifests" `
+            --format yaml
+          
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "✓ Successfully updated manifests locally"
+            
+            # Submit the updated manifests
+            Write-Host "Submitting updated manifests to WinGet repository..."
+            & $wingetcreate submit `
+              --prtitle "Update package: $packageId to version $version" `
+              --token ${{ secrets.GITHUB_TOKEN }} `
+              "manifests"
+            
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✓ Successfully submitted updated package to WinGet"
+            } else {
+              Write-Host "Failed to submit updated package to WinGet repository"
+              throw "Update submission failed"
+            }
+          } else {
+            Write-Host "Failed to update manifests"
+            throw "Update failed"
+          }
         }
       shell: pwsh
       env:
