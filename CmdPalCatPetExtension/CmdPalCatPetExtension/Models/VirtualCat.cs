@@ -7,7 +7,7 @@ namespace CmdPalCatPetExtension.Models
     {
         public string Name { get; set; }
         public int Energy { get; set; } // 0-100
-        public int Hunger { get; set; } // 0-100 (higher = more hungry)
+        public int Tummy { get; set; } // 0-100 (higher = fuller)
         public int Happiness { get; set; } // 0-100
         public int Hygiene { get; set; } // 0-100 (higher = cleaner)
 
@@ -41,11 +41,11 @@ namespace CmdPalCatPetExtension.Models
             Silly
         }
 
-        public VirtualCat(string name, int energy = 80, int hunger = 20, int happiness = 60)
+        public VirtualCat(string name, int energy = 80, int tummy = 20, int happiness = 60)
         {
             Name = string.IsNullOrWhiteSpace(name) ? "Unnamed" : name;
             Energy = Clamp(energy);
-            Hunger = Clamp(hunger);
+            Tummy = Clamp(tummy);
             Happiness = Clamp(happiness);
             LastUpdatedUtc = DateTime.UtcNow;
             CreatedUtc = DateTime.UtcNow;
@@ -68,14 +68,14 @@ namespace CmdPalCatPetExtension.Models
         {
             var minutes = (int)duration.TotalMinutes;
             Energy = Clamp(Energy + minutes / 2); // regain 0.5 energy per minute
-            Hunger = Clamp(Hunger + minutes / 10); // get slightly more hungry
+            Tummy = Clamp(Tummy - minutes / 10); // tummy goes down (gets hungrier)
             SleepCount++;
         }
 
         public void Feed(int amount)
         {
             Energy = Clamp(Energy + amount / 3);
-            Hunger = Clamp(Hunger + amount);
+            Tummy = Clamp(Tummy + amount); // tummy goes up (gets fuller)
             Happiness = Clamp(Happiness + amount / 5);
             FeedCount++;
         }
@@ -84,7 +84,7 @@ namespace CmdPalCatPetExtension.Models
         {
             var minutes = (int)duration.TotalMinutes;
             Energy = Clamp(Energy - minutes); // -1 energy per minute
-            Hunger = Clamp(Hunger + minutes / 5);
+            Tummy = Clamp(Tummy - minutes / 5); // tummy goes down (gets hungrier)
             Happiness = Clamp(Happiness + minutes / 2);
             // Playing makes the cat a bit messier
             Hygiene = Clamp(Hygiene - minutes / 4);
@@ -95,7 +95,7 @@ namespace CmdPalCatPetExtension.Models
         {
             var minutes = Math.Max(1, (int)elapsed.TotalMinutes);
             Energy = Clamp(Energy - minutes);
-            Hunger = Clamp(Hunger + minutes);
+            Tummy = Clamp(Tummy - minutes); // tummy goes down (gets hungrier)
             Happiness = Clamp(Happiness - minutes / 2);
             // Gradual hygiene decay over time
             Hygiene = Clamp(Hygiene - (minutes / 10));

@@ -29,7 +29,7 @@ namespace CmdPalCatPetExtension.Pages
             }
 
             // Create a copy for display so we don't persist Tick effects immediately
-            var displayCat = new VirtualCat(cat.Name, cat.Energy, cat.Hunger, cat.Happiness);
+            var displayCat = new VirtualCat(cat.Name, cat.Energy, cat.Tummy, cat.Happiness);
             var elapsed = DateTime.UtcNow - cat.LastUpdatedUtc;
             displayCat.Tick(elapsed);
 
@@ -50,7 +50,7 @@ namespace CmdPalCatPetExtension.Pages
             }
 
             var energyBar = Bar(displayCat.Energy);
-            var hungerBar = Bar(displayCat.Hunger, invert: true);
+            var hungerBar = Bar(displayCat.Tummy, invert: true);
             var happinessBar = Bar(displayCat.Happiness);
             var hygieneBar = Bar(displayCat.Hygiene);
 

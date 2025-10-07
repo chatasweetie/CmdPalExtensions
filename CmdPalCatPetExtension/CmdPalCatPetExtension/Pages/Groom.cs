@@ -82,7 +82,7 @@ namespace CmdPalCatPetExtension.Pages
                     cat.Happiness = Math.Min(100, cat.Happiness + 5);
                     cat.Hygiene = Math.Min(100, cat.Hygiene + 8);
                     cat.Energy = Math.Max(0, cat.Energy - 2);
-                    cat.Hunger = Math.Min(100, cat.Hunger + 1);
+                    cat.Tummy = Math.Min(100, cat.Tummy - 1);
                     Services.CatRepository.Save(cat);
 
                     var reaction = PickSelfReaction(cat.Personality);
@@ -104,7 +104,7 @@ namespace CmdPalCatPetExtension.Pages
                     cat.Happiness = Math.Min(100, cat.Happiness + 12);
                     cat.Hygiene = Math.Min(100, cat.Hygiene + 20);
                     cat.Energy = Math.Max(0, cat.Energy - 5);
-                    cat.Hunger = Math.Min(100, cat.Hunger + 3);
+                    cat.Tummy = Math.Min(100, cat.Tummy + 3);
                     Services.CatRepository.Save(cat);
 
                     var reaction = PickBrushReaction(cat.Personality);
@@ -126,7 +126,7 @@ namespace CmdPalCatPetExtension.Pages
                     cat.Happiness = Math.Min(100, cat.Happiness + 18);
                     cat.Hygiene = Math.Min(100, cat.Hygiene + 45);
                     cat.Energy = Math.Max(0, cat.Energy - 12);
-                    cat.Hunger = Math.Min(100, cat.Hunger + 8);
+                    cat.Tummy = Math.Min(100, cat.Tummy + 8);
                     Services.CatRepository.Save(cat);
 
                     var reaction = PickBathReaction(cat.Personality);
