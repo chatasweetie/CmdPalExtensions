@@ -27,6 +27,9 @@ on:
 jobs:
   build-exe:
     runs-on: windows-2022
+    permissions:
+      contents: write
+      actions: read
     
     env:
       SOLUTION_PATH: CmdPalCatPetExtension/CmdPalCatPetExtension.sln
@@ -338,27 +341,6 @@ jobs:
           CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/installer/*.exe
           CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/win-arm64/publish/
         if-no-files-found: warn
-    
-    - name: Create Git Tag and Release (on successful build)
-      if: steps.build_x64.outcome == 'success' && github.event.inputs.create_release == 'true'
-      run: |
-        $version = "${{ steps.version.outputs.VERSION }}"
-        $tagName = "CmdPalCatPetExtension-v$version"
-        
-        Write-Host "Creating Git tag: $tagName" -ForegroundColor Green
-        
-        # Configure Git
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        
-        # Create and push tag
-        git tag -a "$tagName" -m "CmdPalCatPetExtension v$version - EXE Installer Release"
-        git push origin "$tagName"
-        
-        Write-Host "✓ Git tag created and pushed: $tagName" -ForegroundColor Green
-      shell: pwsh
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Create GitHub Release (on successful build)  
       if: steps.build_x64.outcome == 'success' && github.event.inputs.create_release == 'true'
