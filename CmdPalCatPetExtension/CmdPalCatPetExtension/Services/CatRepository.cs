@@ -27,7 +27,7 @@ namespace CmdPalCatPetExtension.Services
             bool wasNew = !File.Exists(FilePath);
             // update timestamp to reflect when we persist
             cat.LastUpdatedUtc = DateTime.UtcNow;
-            var json = JsonSerializer.Serialize(cat, new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(cat, CatJsonContext.Default.VirtualCat);
             File.WriteAllText(FilePath, json);
             // Notify listeners that a cat was saved/changed
             if (wasNew)
@@ -69,18 +69,12 @@ namespace CmdPalCatPetExtension.Services
             try
             {
                 var json = File.ReadAllText(FilePath);
-                var cat = JsonSerializer.Deserialize<VirtualCat>(json);
+                var cat = JsonSerializer.Deserialize(json, CatJsonContext.Default.VirtualCat);
                 if (cat != null)
                 {
                     // Ensure collections are initialized for older saved files
-                    if (cat.Achievements == null) cat.Achievements = new HashSet<string>();
-                    // initialize claimed achievements if missing
-                    var claimedProp = cat.GetType().GetProperty("ClaimedAchievements");
-                    if (claimedProp != null)
-                    {
-                        var val = claimedProp.GetValue(cat) as HashSet<string>;
-                        if (val == null) cat.GetType().GetProperty("ClaimedAchievements")?.SetValue(cat, new HashSet<string>());
-                    }
+                    cat.Achievements ??= new HashSet<string>();
+                    cat.ClaimedAchievements ??= new HashSet<string>();
                 }
 
                 return cat;

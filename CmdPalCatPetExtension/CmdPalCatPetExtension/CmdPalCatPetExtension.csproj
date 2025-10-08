@@ -16,7 +16,7 @@
     
     <AppxPackageIdentityName>JessicaDeneEarley-Cha.CmdPalCatPetExtension</AppxPackageIdentityName>
     <AppxPackagePublisher>CN=16D1F4AB-86B4-4DA3-A0CA-3FD2DBB38A19</AppxPackagePublisher>
-    <AppxPackageVersion>0.0.2.1</AppxPackageVersion>
+    <AppxPackageVersion>0.0.4.0</AppxPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Assets\**\*.png" />
@@ -59,7 +59,7 @@
     <CsWinRTAotOptimizerEnabled>true</CsWinRTAotOptimizerEnabled>
     <CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>
     <!-- Suppress DynamicallyAccessedMemberTypes.PublicParameterlessConstructor in fallback code path of Windows SDK projection -->
-    <WarningsNotAsErrors>IL2081;$(WarningsNotAsErrors)</WarningsNotAsErrors>
+    <WarningsNotAsErrors>IL2081;IL2104;$(WarningsNotAsErrors)</WarningsNotAsErrors>
 
     <!-- When publishing trimmed, make sure to treat trimming warnings as build errors -->
     <ILLinkTreatWarningsAsErrors>true</ILLinkTreatWarningsAsErrors>

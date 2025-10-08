@@ -11,7 +11,7 @@
   <Identity
     Name="JessicaDeneEarley-Cha.CmdPalCatPetExtension"
     Publisher="CN=16D1F4AB-86B4-4DA3-A0CA-3FD2DBB38A19"
-    Version="0.0.2.1" />
+    Version="0.0.4.0" />
 
   <Properties>
     <DisplayName>Pet Cat</DisplayName>

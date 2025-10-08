@@ -1,0 +1,210 @@
+name: CmdPalCatPetExtension - Create EXE Installer with Auto-Version Detection
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - 'CmdPalCatPetExtension/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'CmdPalCatPetExtension/**'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number for the installer (leave empty to use project file version)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  build-exe:
+    runs-on: windows-latest
+    
+    env:
+      SOLUTION_PATH: CmdPalCatPetExtension/CmdPalCatPetExtension.sln
+      PROJECT_PATH: CmdPalCatPetExtension/CmdPalCatPetExtension/CmdPalCatPetExtension.csproj
+      BUILD_SCRIPT: CmdPalCatPetExtension/CmdPalCatPetExtension/build-exe.ps1
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+    
+    - name: Generate infrastructure files
+      run: |
+        New-Item -Path "CmdPalCatPetExtension/CmdPalCatPetExtension" -ItemType Directory -Force | Out-Null
+        
+        # Extract version from project file for default parameter
+        $projectFile = "CmdPalCatPetExtension/CmdPalCatPetExtension/CmdPalCatPetExtension.csproj"
+        $xml = [xml](Get-Content $projectFile)
+        $projectVersion = $xml.Project.PropertyGroup.AppxPackageVersion | Where-Object { $_ -ne $null } | Select-Object -First 1
+        if (-not $projectVersion) { 
+          throw "Cannot find <AppxPackageVersion> in project file: $projectFile. Please make sure the AppxPackageVersion element exists in the project file." 
+        }
+        
+        # Create build-exe.ps1 using simple string concatenation
+        $lines = @(
+          "param([string]`$Configuration = `"Release`", [string]`$Version = `"$projectVersion`", [string]`$Platform = `"x64`")",
+          '$ErrorActionPreference = "Stop"',
+          'Write-Host "Building CmdPalCatPetExtension EXE installer..." -ForegroundColor Green',
+          '$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path',
+          '$ProjectDir = $ScriptDir',
+          '# Clean previous builds (ignore errors for locked files)',
+          'try { ',
+          '    if (Test-Path "$ProjectDir\bin") { Remove-Item -Path "$ProjectDir\bin" -Recurse -Force -ErrorAction SilentlyContinue }',
+          '} catch { Write-Warning "Could not clean bin directory completely" }',
+          'try {',
+          '    if (Test-Path "$ProjectDir\obj") { Remove-Item -Path "$ProjectDir\obj" -Recurse -Force -ErrorAction SilentlyContinue }',
+          '} catch { Write-Warning "Could not clean obj directory completely" }',
+          'dotnet restore "$ProjectDir\CmdPalCatPetExtension.csproj"',
+          'dotnet publish "$ProjectDir\CmdPalCatPetExtension.csproj" --configuration $Configuration --framework "net9.0-windows10.0.22621.0" --runtime "win-$Platform" --self-contained true --output "$ProjectDir\bin\$Configuration\net9.0-windows10.0.22621.0\win-$Platform\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false',
+          'if ($LASTEXITCODE -ne 0) { throw "Build failed" }',
+          'Write-Host "Build completed!" -ForegroundColor Green',
+          '$InnoSetupPath = "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe"',
+          'if (-not (Test-Path $InnoSetupPath)) { $InnoSetupPath = "${env:ProgramFiles}\Inno Setup 6\iscc.exe" }',
+          'if (Test-Path $InnoSetupPath) {',
+          '  $InstallerDir = "$ProjectDir\bin\$Configuration\installer"',
+          '  New-Item -ItemType Directory -Path $InstallerDir -Force | Out-Null',
+          '  & $InnoSetupPath "$ProjectDir\setup.iss" /DAppVersion=$Version /O"$InstallerDir"',
+          '  if ($LASTEXITCODE -eq 0) { Write-Host "Installer created!" -ForegroundColor Green }',
+          '} else { Write-Warning "Inno Setup not found" }'
+        )
+        $lines -join "`n" | Out-File -FilePath "CmdPalCatPetExtension/CmdPalCatPetExtension/build-exe.ps1" -Encoding UTF8
+        
+        # Create setup.iss using simple string concatenation  
+        $issLines = @(
+          '; Inno Setup for CmdPalCatPetExtension',
+          '#ifndef AppVersion',
+          "#define AppVersion `"$projectVersion`"",
+          '#endif',
+          '',
+          '[Setup]',
+          'AppId={{D8E9F2A3-1B4C-5678-90AB-CDEF12345678}}',
+          'AppName=Cat Pet Extension',
+          'AppVersion={#AppVersion}',
+          'AppPublisher=Jessica Dene Earley-Cha',
+          'AppPublisherURL=https://github.com/chatasweetie/CmdPalExtensions',
+          'DefaultDirName={autopf}\CmdPalCatPetExtension',
+          'DefaultGroupName=Cat Pet Extension',
+          'AllowNoIcons=yes',
+          'LicenseFile=..\..\LICENSE',
+          'OutputDir=bin\Release\installer', 
+          'OutputBaseFilename=CmdPalCatPetExtension-Setup-{#AppVersion}',
+          'Compression=lzma',
+          'SolidCompression=yes',
+          'WizardStyle=modern',
+          'MinVersion=10.0.19041',
+          'ArchitecturesAllowed=x64',
+          '',
+          '[Languages]',
+          'Name: "english"; MessagesFile: "compiler:Default.isl"',
+          '',
+          '[Files]',
+          'Source: "bin\Release\net9.0-windows10.0.22621.0\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs',
+          '',
+          '[Icons]',
+          'Name: "{group}\Cat Pet Extension"; Filename: "{app}\CmdPalCatPetExtension.exe"',
+          'Name: "{group}\{cm:UninstallProgram,Cat Pet Extension}"; Filename: "{uninstallexe}"',
+          '',
+          '[Registry]',
+          'Root: HKCU; Subkey: "SOFTWARE\Classes\CLSID\{{96cfc015-d39e-485d-8d1d-e5eb82ba6e86}}"; ValueData: "CmdPalCatPetExtension"',
+          'Root: HKCU; Subkey: "SOFTWARE\Classes\CLSID\{{96cfc015-d39e-485d-8d1d-e5eb82ba6e86}}\LocalServer32"; ValueData: "{app}\CmdPalCatPetExtension.exe -RegisterProcessAsComServer"',
+          '',
+          '[UninstallRun]',
+          'Filename: "{app}\CmdPalCatPetExtension.exe"; Parameters: "-UnregisterProcessAsComServer"; Flags: runhidden'
+        )
+        $issLines -join "`n" | Out-File -FilePath "CmdPalCatPetExtension/CmdPalCatPetExtension/setup.iss" -Encoding UTF8
+        
+        Write-Host "✓ Generated build-exe.ps1 and setup.iss"
+      shell: pwsh
+    
+    - name: Install Inno Setup
+      run: |
+        $InnoSetupUrl = "https://jrsoftware.org/download.php/is.exe"
+        $InstallerPath = "$env:TEMP\innosetup.exe"
+        Write-Host "Downloading Inno Setup..."
+        Invoke-WebRequest -Uri $InnoSetupUrl -OutFile $InstallerPath
+        Write-Host "Installing Inno Setup..."
+        Start-Process -FilePath $InstallerPath -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-" -Wait
+        Write-Host "Inno Setup installation completed"
+      shell: pwsh
+    
+    - name: Restore NuGet packages
+      run: dotnet restore ${{ env.SOLUTION_PATH }}
+    
+    - name: Determine version
+      id: version
+      run: |
+        if ("${{ github.event.inputs.version }}" -ne "") {
+          $version = "${{ github.event.inputs.version }}"
+          Write-Host "Using manual version input: $version"
+        } else {
+          # Extract version from the project file
+          $projectFile = "CmdPalCatPetExtension/CmdPalCatPetExtension/CmdPalCatPetExtension.csproj"
+          $xml = [xml](Get-Content $projectFile)
+          $version = $xml.Project.PropertyGroup.AppxPackageVersion | Where-Object { $_ -ne $null } | Select-Object -First 1
+          if (-not $version) {
+            throw "Cannot find <AppxPackageVersion> in project file: $projectFile. Please make sure the AppxPackageVersion element exists in the project file."
+          }
+          Write-Host "Extracted version from project file: $version"
+        }
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        Write-Host "Final version: $version"
+      shell: pwsh
+    
+    - name: Build EXE installer (x64)
+      run: |
+        Set-Location "CmdPalCatPetExtension/CmdPalCatPetExtension"
+        & .\build-exe.ps1 -Configuration Release -Version "${{ steps.version.outputs.VERSION }}" -Platform x64
+      shell: pwsh
+    
+    - name: Build EXE installer (ARM64)
+      run: |
+        Set-Location "CmdPalCatPetExtension/CmdPalCatPetExtension"
+        & .\build-exe.ps1 -Configuration Release -Version "${{ steps.version.outputs.VERSION }}" -Platform arm64
+      shell: pwsh
+    
+    - name: List build artifacts
+      run: |
+        Write-Host "Build artifacts:"
+        Get-ChildItem -Path "CmdPalCatPetExtension/CmdPalCatPetExtension/bin" -Recurse -File | ForEach-Object {
+          Write-Host "  $($_.FullName.Replace((Get-Location).Path, '.'))"
+        }
+      shell: pwsh
+    
+    - name: Upload x64 installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: CmdPalCatPetExtension-x64-installer
+        path: |
+          CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/installer/*.exe
+          CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/net9.0-windows10.0.22621.0/win-x64/publish/
+        if-no-files-found: error
+    
+    - name: Upload ARM64 installer  
+      uses: actions/upload-artifact@v4
+      with:
+        name: CmdPalCatPetExtension-arm64-installer
+        path: |
+          CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/installer/*.exe
+          CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/net9.0-windows10.0.22621.0/win-arm64/publish/
+        if-no-files-found: warn
+    
+    - name: Create Release (on tag)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/installer/*.exe
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

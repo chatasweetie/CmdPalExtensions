@@ -5,7 +5,7 @@ using CmdPalCatPetExtension.Models;
 namespace CmdPalCatPetExtension.Services
 {
     [JsonSerializable(typeof(VirtualCat))]
-    internal partial class CatJsonContext : JsonSerializerContext
+    internal sealed partial class CatJsonContext : JsonSerializerContext
     {
     }
 }
