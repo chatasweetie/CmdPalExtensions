@@ -1,14 +1,6 @@
 name: CmdPalCatPetExtension - Create EXE Installer with Auto-Version Detection
 
 on:
-  push:
-    branches: [ main ]
-    paths: 
-      - 'CmdPalCatPetExtension/**'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'CmdPalCatPetExtension/**'
   workflow_dispatch:
     inputs:
       version:
@@ -128,13 +120,21 @@ jobs:
     
     - name: Install Inno Setup
       run: |
-        $InnoSetupUrl = "https://jrsoftware.org/download.php/is.exe"
-        $InstallerPath = "$env:TEMP\innosetup.exe"
-        Write-Host "Downloading Inno Setup..."
-        Invoke-WebRequest -Uri $InnoSetupUrl -OutFile $InstallerPath
-        Write-Host "Installing Inno Setup..."
-        Start-Process -FilePath $InstallerPath -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-" -Wait
+        # Use chocolatey to install Inno Setup (more reliable than direct download)
+        Write-Host "Installing Inno Setup via Chocolatey..."
+        choco install innosetup -y --no-progress
         Write-Host "Inno Setup installation completed"
+        
+        # Verify installation
+        $InnoSetupPath = "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe"
+        if (-not (Test-Path $InnoSetupPath)) { 
+          $InnoSetupPath = "${env:ProgramFiles}\Inno Setup 6\iscc.exe" 
+        }
+        if (Test-Path $InnoSetupPath) {
+          Write-Host "✓ Inno Setup found at: $InnoSetupPath"
+        } else {
+          throw "Inno Setup installation failed - compiler not found"
+        }
       shell: pwsh
     
     - name: Restore NuGet packages
