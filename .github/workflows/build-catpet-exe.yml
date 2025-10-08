@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-exe:
-    runs-on: windows-latest
+    runs-on: windows-2022
     
     env:
       SOLUTION_PATH: CmdPalCatPetExtension/CmdPalCatPetExtension.sln
@@ -64,7 +64,7 @@ jobs:
           '    if (Test-Path "$ProjectDir\obj") { Remove-Item -Path "$ProjectDir\obj" -Recurse -Force -ErrorAction SilentlyContinue }',
           '} catch { Write-Warning "Could not clean obj directory completely" }',
           'dotnet restore "$ProjectDir\CmdPalCatPetExtension.csproj"',
-          'dotnet publish "$ProjectDir\CmdPalCatPetExtension.csproj" --configuration $Configuration --runtime "win-$Platform" --self-contained true --output "$ProjectDir\bin\$Configuration\win-$Platform\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false -p:UseAppHost=true -p:TargetFramework=net9.0-windows',
+          'dotnet publish "$ProjectDir\CmdPalCatPetExtension.csproj" --configuration $Configuration --runtime "win-$Platform" --self-contained true --output "$ProjectDir\bin\$Configuration\win-$Platform\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false -p:UseAppHost=true -p:TargetFramework=net9.0-windows10.0.19041.0',
           'if ($LASTEXITCODE -ne 0) { throw "Build failed" }',
           'Write-Host "Build completed!" -ForegroundColor Green',
           '$InnoSetupPath = "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe"',
