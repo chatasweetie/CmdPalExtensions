@@ -30,11 +30,13 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
     
-    - name: Install Windows SDK and Workloads
+    - name: Check available SDKs and skip workload installation
       run: |
-        Write-Host "Installing required .NET workloads..."
-        dotnet workload install maui-windows --skip-manifest-update
-        Write-Host "Workload installation completed"
+        Write-Host "Available Windows SDKs:" -ForegroundColor Yellow
+        if (Test-Path "C:\Program Files (x86)\Windows Kits\10\Platforms") {
+          Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Platforms" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $_" }
+        }
+        Write-Host "Skipping workload installation to avoid SDK conflicts..."
       shell: pwsh
     
     - name: Generate infrastructure files
@@ -64,7 +66,8 @@ jobs:
           '    if (Test-Path "$ProjectDir\obj") { Remove-Item -Path "$ProjectDir\obj" -Recurse -Force -ErrorAction SilentlyContinue }',
           '} catch { Write-Warning "Could not clean obj directory completely" }',
           'dotnet restore "$ProjectDir\CmdPalCatPetExtension.csproj"',
-          'dotnet publish "$ProjectDir\CmdPalCatPetExtension.csproj" --configuration $Configuration --runtime "win-$Platform" --self-contained true --output "$ProjectDir\bin\$Configuration\win-$Platform\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false -p:UseAppHost=true -p:TargetFramework=net9.0-windows10.0.19041.0',
+          'Write-Host "Building with framework override..." -ForegroundColor Yellow',
+          'dotnet publish "$ProjectDir\CmdPalCatPetExtension.csproj" --configuration $Configuration --runtime "win-$Platform" --self-contained true --output "$ProjectDir\bin\$Configuration\win-$Platform\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false -p:UseAppHost=true --framework net9.0',
           'if ($LASTEXITCODE -ne 0) { throw "Build failed" }',
           'Write-Host "Build completed!" -ForegroundColor Green',
           '$InnoSetupPath = "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe"',
