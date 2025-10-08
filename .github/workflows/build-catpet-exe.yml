@@ -117,7 +117,7 @@ jobs:
           'Name: "english"; MessagesFile: "compiler:Default.isl"',
           '',
           '[Files]',
-          'Source: "bin\Release\net9.0-windows10.0.22621.0\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs',
+          'Source: "bin\Release\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs',
           '',
           '[Icons]',
           'Name: "{group}\Cat Pet Extension"; Filename: "{app}\CmdPalCatPetExtension.exe"',
@@ -182,7 +182,75 @@ jobs:
       id: build_x64
       run: |
         Set-Location "CmdPalCatPetExtension/CmdPalCatPetExtension"
-        & .\build-exe.ps1 -Configuration Release -Version "${{ steps.version.outputs.VERSION }}" -Platform x64
+        
+        Write-Host "=== Building x64 version ===" -ForegroundColor Green
+        Write-Host "Version: ${{ steps.version.outputs.VERSION }}"
+        
+        # Clean previous builds
+        if (Test-Path "bin") { Remove-Item -Path "bin" -Recurse -Force -ErrorAction SilentlyContinue }
+        if (Test-Path "obj") { Remove-Item -Path "obj" -Recurse -Force -ErrorAction SilentlyContinue }
+        
+        # Build and publish
+        Write-Host "Running dotnet publish..." -ForegroundColor Yellow
+        dotnet publish "CmdPalCatPetExtension.csproj" --configuration Release --runtime win-x64 --self-contained true --output "bin\Release\win-x64\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false -p:UseAppHost=true
+        
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "dotnet publish failed with exit code: $LASTEXITCODE"
+          exit 1
+        }
+        
+        # Check published files
+        $publishDir = "bin\Release\win-x64\publish"
+        if (Test-Path $publishDir) {
+          $fileCount = (Get-ChildItem -Path $publishDir -Recurse -File).Count
+          Write-Host "✓ Published $fileCount files to $publishDir" -ForegroundColor Green
+          
+          # Check for key files
+          if (Test-Path "$publishDir\CmdPalCatPetExtension.exe") { 
+            Write-Host "✓ Main executable found" -ForegroundColor Green 
+          } else { 
+            Write-Warning "Main executable not found" 
+          }
+        } else {
+          Write-Error "Publish directory not found: $publishDir"
+          exit 1
+        }
+        
+        # Create installer directory
+        $installerDir = "bin\Release\installer"
+        New-Item -ItemType Directory -Path $installerDir -Force | Out-Null
+        
+        # Run Inno Setup
+        Write-Host "Running Inno Setup..." -ForegroundColor Yellow
+        $InnoSetupPath = "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe"
+        if (-not (Test-Path $InnoSetupPath)) { 
+          $InnoSetupPath = "${env:ProgramFiles}\Inno Setup 6\iscc.exe" 
+        }
+        
+        if (Test-Path $InnoSetupPath) {
+          Write-Host "Using Inno Setup: $InnoSetupPath"
+          & $InnoSetupPath "setup.iss" /DAppVersion="${{ steps.version.outputs.VERSION }}" /O"$installerDir"
+          $innoResult = $LASTEXITCODE
+          Write-Host "Inno Setup exit code: $innoResult"
+          
+          # Check if installer was created
+          $installers = Get-ChildItem -Path $installerDir -Filter "*.exe" -ErrorAction SilentlyContinue
+          if ($installers) {
+            foreach ($installer in $installers) {
+              $sizeMB = [math]::Round($installer.Length / 1MB, 2)
+              Write-Host "✓ Created installer: $($installer.Name) ($sizeMB MB)" -ForegroundColor Green
+            }
+          } else {
+            Write-Warning "No installer files found in $installerDir"
+            Write-Host "Contents of installer directory:"
+            Get-ChildItem -Path $installerDir -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $_" }
+          }
+        } else {
+          Write-Error "Inno Setup compiler not found"
+          exit 1
+        }
+        
+        Write-Host "=== x64 Build Complete ===" -ForegroundColor Green
       shell: pwsh
     
     - name: Manual Build Instructions (if CI fails)
@@ -210,7 +278,27 @@ jobs:
       id: build_arm64
       run: |
         Set-Location "CmdPalCatPetExtension/CmdPalCatPetExtension"
-        & .\build-exe.ps1 -Configuration Release -Version "${{ steps.version.outputs.VERSION }}" -Platform arm64
+        
+        Write-Host "=== Building ARM64 version ===" -ForegroundColor Green
+        Write-Host "Version: ${{ steps.version.outputs.VERSION }}"
+        
+        # Build and publish ARM64
+        Write-Host "Running dotnet publish for ARM64..." -ForegroundColor Yellow
+        dotnet publish "CmdPalCatPetExtension.csproj" --configuration Release --runtime win-arm64 --self-contained true --output "bin\Release\win-arm64\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false -p:UseAppHost=true
+        
+        if ($LASTEXITCODE -ne 0) {
+          Write-Warning "dotnet publish ARM64 failed with exit code: $LASTEXITCODE"
+          # Don't exit here since ARM64 is optional
+        } else {
+          # Check published files
+          $publishDir = "bin\Release\win-arm64\publish"
+          if (Test-Path $publishDir) {
+            $fileCount = (Get-ChildItem -Path $publishDir -Recurse -File).Count
+            Write-Host "✓ Published $fileCount ARM64 files to $publishDir" -ForegroundColor Green
+          }
+        }
+        
+        Write-Host "=== ARM64 Build Complete ===" -ForegroundColor Green
       shell: pwsh
     
     - name: List build artifacts
