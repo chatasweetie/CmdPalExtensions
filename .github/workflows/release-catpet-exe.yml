@@ -1,4 +1,4 @@
-name: CmdPalCatPetExtension - Create EXE Installer with Auto-Version Detection
+name: CmdPalCatPetExtension - Build EXE Installer and Create Release
 
 on:
   workflow_dispatch:
@@ -25,7 +25,7 @@ on:
         type: string
 
 jobs:
-  build-exe:
+  build-and-release:
     runs-on: windows-2022
     permissions:
       contents: write
@@ -384,7 +384,7 @@ jobs:
     - name: Workflow Summary
       if: always()
       run: |
-        Write-Host "=== CmdPal Cat Pet Extension Build Summary ===" -ForegroundColor Cyan
+        Write-Host "=== CmdPal Cat Pet Extension Release Summary ===" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "Version: ${{ steps.version.outputs.VERSION }}" -ForegroundColor Yellow
         Write-Host "x64 Build: $(if ('${{ steps.build_x64.outcome }}' -eq 'success') { '✅ Success' } else { '❌ Failed' })" -ForegroundColor $(if ('${{ steps.build_x64.outcome }}' -eq 'success') { 'Green' } else { 'Red' })
