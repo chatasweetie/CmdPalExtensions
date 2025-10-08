@@ -1,0 +1,431 @@
+# TEMPLATE: Extension EXE Installer Build and Release Workflow
+# 
+# To use this template for a new extension:
+# 1. Copy this file to a new workflow file (e.g., release-myextension-exe.yml)
+# 2. Replace all instances of DEVELOPER_NAME with your developer name (e.g., Your Name Here)
+# 3. Replace all instances of GITHUB_REPO_URL with your GitHub repository URL (e.g., https://github.com/yourusername/YourRepository)
+# 4. Replace all instances of DISPLAY_NAME with your display name (e.g., My Extension)
+# 5. Replace all instances of EXTENSION_NAME with your extension name (e.g., CmdPalMyExtension)
+# 6. Replace all instances of FOLDER_NAME with your project folder name (e.g., CmdPalMyExtension)
+# 7. Replace all instances of the GENERATE-NEW-GUID-HERE with your project's CLSID
+# 8. Verify all paths match your project structure, currently 
+#       - Environment Variables (lines 43-45)
+#       - Project File Paths (lines 65, 184, etc.)
+#       - Working Directory Changes (lines 192, 289)
+#       - Build Commands (lines 202, 295)
+#       - Artifact Paths (lines 341-344, 351-354):
+#       - Release File Paths (lines 372, 383)
+#       - Manual Build Instructions (line 272)
+#       - License File Path (line 118)
+# 9. Test the workflow with a manual trigger
+
+name: EXTENSION_NAME - Build EXE Installer and Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number for the installer (leave empty to use project file version)'
+        required: false
+        default: ''
+        type: string
+      build_locally:
+        description: 'Set to true to skip CI build and document manual process'
+        required: false
+        default: 'false'
+        type: string
+      create_release:
+        description: 'Create GitHub Release after successful build'
+        required: false
+        default: true
+        type: boolean
+      release_notes:
+        description: 'Release notes describing what is new in this version'
+        required: false
+        default: 'New release with latest updates and improvements.'
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: windows-2022
+    permissions:
+      contents: write
+      actions: read
+    
+    env:
+      SOLUTION_PATH: FOLDER_NAME/EXTENSION_NAME.sln
+      PROJECT_PATH: FOLDER_NAME/EXTENSION_NAME/EXTENSION_NAME.csproj
+      BUILD_SCRIPT: FOLDER_NAME/EXTENSION_NAME/build-exe.ps1
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+    
+    - name: Check available SDKs and skip workload installation
+      run: |
+        Write-Host "Available Windows SDKs:" -ForegroundColor Yellow
+        if (Test-Path "C:\Program Files (x86)\Windows Kits\10\Platforms") {
+          Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Platforms" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $_" }
+        }
+        Write-Host "Skipping workload installation to avoid SDK conflicts..."
+      shell: pwsh
+    
+    - name: Generate infrastructure files
+      run: |
+        New-Item -Path "FOLDER_NAME/EXTENSION_NAME" -ItemType Directory -Force | Out-Null
+        
+        # Extract version from project file for default parameter
+        $projectFile = "FOLDER_NAME/EXTENSION_NAME/EXTENSION_NAME.csproj"
+        $xml = [xml](Get-Content $projectFile)
+        $projectVersion = $xml.Project.PropertyGroup.AppxPackageVersion | Where-Object { $_ -ne $null } | Select-Object -First 1
+        if (-not $projectVersion) { 
+          throw "Cannot find <AppxPackageVersion> in project file: $projectFile. Please make sure the AppxPackageVersion element exists in the project file." 
+        }
+        
+        # Create build-exe.ps1 using simple string concatenation
+        $lines = @(
+          "param([string]`$Configuration = `"Release`", [string]`$Version = `"$projectVersion`", [string]`$Platform = `"x64`")",
+          '$ErrorActionPreference = "Stop"',
+          'Write-Host "Building EXTENSION_NAME EXE installer..." -ForegroundColor Green',
+          '$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path',
+          '$ProjectDir = $ScriptDir',
+          '# Clean previous builds (ignore errors for locked files)',
+          'try { ',
+          '    if (Test-Path "$ProjectDir\bin") { Remove-Item -Path "$ProjectDir\bin" -Recurse -Force -ErrorAction SilentlyContinue }',
+          '} catch { Write-Warning "Could not clean bin directory completely" }',
+          'try {',
+          '    if (Test-Path "$ProjectDir\obj") { Remove-Item -Path "$ProjectDir\obj" -Recurse -Force -ErrorAction SilentlyContinue }',
+          '} catch { Write-Warning "Could not clean obj directory completely" }',
+          'dotnet restore "$ProjectDir\EXTENSION_NAME.csproj"',
+          'Write-Host "Attempting to build WinUI app in CI - this may not work due to SDK limitations" -ForegroundColor Yellow',
+          'dotnet build "$ProjectDir\EXTENSION_NAME.csproj" --configuration $Configuration -p:Platform=$Platform',
+          'Write-Host "Basic build completed, attempting publish..." -ForegroundColor Yellow',
+          'dotnet publish "$ProjectDir\EXTENSION_NAME.csproj" --configuration $Configuration --runtime "win-$Platform" --self-contained true --output "$ProjectDir\bin\$Configuration\win-$Platform\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false -p:UseAppHost=true',
+          'if ($LASTEXITCODE -ne 0) { throw "Build failed" }',
+          'Write-Host "Build completed!" -ForegroundColor Green',
+          '$InnoSetupPath = "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe"',
+          'if (-not (Test-Path $InnoSetupPath)) { $InnoSetupPath = "${env:ProgramFiles}\Inno Setup 6\iscc.exe" }',
+          'if (Test-Path $InnoSetupPath) {',
+          '  $InstallerDir = "$ProjectDir\bin\$Configuration\installer"',
+          '  New-Item -ItemType Directory -Path $InstallerDir -Force | Out-Null',
+          '  & $InnoSetupPath "$ProjectDir\setup.iss" /DAppVersion=$Version /O"$InstallerDir"',
+          '  if ($LASTEXITCODE -eq 0) { Write-Host "Installer created!" -ForegroundColor Green }',
+          '} else { Write-Warning "Inno Setup not found" }'
+        )
+        $lines -join "`n" | Out-File -FilePath "FOLDER_NAME/EXTENSION_NAME/build-exe.ps1" -Encoding UTF8
+        
+        # Create setup.iss using simple string concatenation  
+        $issLines = @(
+          '; Inno Setup for EXTENSION_NAME',
+          '#ifndef AppVersion',
+          "#define AppVersion `"$projectVersion`"",
+          '#endif',
+          '',
+          '[Setup]',
+          'AppId=GENERATE-NEW-GUID-HERE',
+          'AppName=DISPLAY_NAME',
+          'AppVersion={#AppVersion}',
+          'AppPublisher=DEVELOPER_NAME',
+          'AppPublisherURL=GITHUB_REPO_URL',
+          'DefaultDirName={autopf}\EXTENSION_NAME',
+          'DefaultGroupName=DISPLAY_NAME',
+          'AllowNoIcons=yes',
+          'LicenseFile=..\..\LICENSE',
+          'OutputDir=bin\Release\installer', 
+          'OutputBaseFilename=EXTENSION_NAME-Setup-{#AppVersion}',
+          'Compression=lzma',
+          'SolidCompression=yes',
+          'WizardStyle=modern',
+          'MinVersion=10.0.19041',
+          'ArchitecturesAllowed=x64',
+          '',
+          '[Languages]',
+          'Name: "english"; MessagesFile: "compiler:Default.isl"',
+          '',
+          '[Files]',
+          'Source: "bin\Release\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs',
+          '',
+          '[Icons]',
+          'Name: "{group}\DISPLAY_NAME"; Filename: "{app}\EXTENSION_NAME.exe"',
+          'Name: "{group}\{cm:UninstallProgram,DISPLAY_NAME}"; Filename: "{uninstallexe}"',
+          '',
+          '[Registry]',
+          'Root: HKCU; Subkey: "SOFTWARE\Classes\CLSID\GENERATE-NEW-GUID-HERE"; ValueData: "EXTENSION_NAME"',
+          'Root: HKCU; Subkey: "SOFTWARE\Classes\CLSID\GENERATE-NEW-GUID-HERE\LocalServer32"; ValueData: "{app}\EXTENSION_NAME.exe -RegisterProcessAsComServer"',
+          '',
+          '[UninstallRun]',
+          'Filename: "{app}\EXTENSION_NAME.exe"; Parameters: "-UnregisterProcessAsComServer"; Flags: runhidden'
+        )
+        $issLines -join "`n" | Out-File -FilePath "FOLDER_NAME/EXTENSION_NAME/setup.iss" -Encoding UTF8
+        
+        Write-Host "✓ Generated build-exe.ps1 and setup.iss"
+      shell: pwsh
+    
+    - name: Install Inno Setup
+      run: |
+        # Use chocolatey to install Inno Setup (more reliable than direct download)
+        Write-Host "Installing Inno Setup via Chocolatey..."
+        choco install innosetup -y --no-progress
+        Write-Host "Inno Setup installation completed"
+        
+        # Verify installation
+        $InnoSetupPath = "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe"
+        if (-not (Test-Path $InnoSetupPath)) { 
+          $InnoSetupPath = "${env:ProgramFiles}\Inno Setup 6\iscc.exe" 
+        }
+        if (Test-Path $InnoSetupPath) {
+          Write-Host "✓ Inno Setup found at: $InnoSetupPath"
+        } else {
+          throw "Inno Setup installation failed - compiler not found"
+        }
+      shell: pwsh
+    
+    - name: Restore NuGet packages
+      run: dotnet restore ${{ env.SOLUTION_PATH }}
+    
+    - name: Determine version
+      id: version
+      run: |
+        if ("${{ github.event.inputs.version }}" -ne "") {
+          $version = "${{ github.event.inputs.version }}"
+          Write-Host "Using manual version input: $version"
+        } else {
+          # Extract version from the project file
+          $projectFile = "FOLDER_NAME/EXTENSION_NAME/EXTENSION_NAME.csproj"
+          $xml = [xml](Get-Content $projectFile)
+          $version = $xml.Project.PropertyGroup.AppxPackageVersion | Where-Object { $_ -ne $null } | Select-Object -First 1
+          if (-not $version) {
+            throw "Cannot find <AppxPackageVersion> in project file: $projectFile. Please make sure the AppxPackageVersion element exists in the project file."
+          }
+          Write-Host "Extracted version from project file: $version"
+        }
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        Write-Host "Final version: $version"
+      shell: pwsh
+    
+    - name: Build EXE installer (x64)
+      continue-on-error: true
+      id: build_x64
+      run: |
+        Set-Location "FOLDER_NAME/EXTENSION_NAME"
+        
+        Write-Host "=== Building x64 version ===" -ForegroundColor Green
+        Write-Host "Version: ${{ steps.version.outputs.VERSION }}"
+        
+        # Clean previous builds
+        if (Test-Path "bin") { Remove-Item -Path "bin" -Recurse -Force -ErrorAction SilentlyContinue }
+        if (Test-Path "obj") { Remove-Item -Path "obj" -Recurse -Force -ErrorAction SilentlyContinue }
+        
+        # Build and publish
+        Write-Host "Running dotnet publish..." -ForegroundColor Yellow
+        dotnet publish "EXTENSION_NAME.csproj" --configuration Release --runtime win-x64 --self-contained true --output "bin\Release\win-x64\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false -p:UseAppHost=true
+        
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "dotnet publish failed with exit code: $LASTEXITCODE"
+          exit 1
+        }
+        
+        # Check published files
+        $publishDir = "bin\Release\win-x64\publish"
+        if (Test-Path $publishDir) {
+          $fileCount = (Get-ChildItem -Path $publishDir -Recurse -File).Count
+          Write-Host "✓ Published $fileCount files to $publishDir" -ForegroundColor Green
+          
+          # Check for key files
+          if (Test-Path "$publishDir\EXTENSION_NAME.exe") { 
+            Write-Host "✓ Main executable found" -ForegroundColor Green 
+          } else { 
+            Write-Warning "Main executable not found" 
+          }
+        } else {
+          Write-Error "Publish directory not found: $publishDir"
+          exit 1
+        }
+        
+        # Create installer directory
+        $installerDir = "bin\Release\installer"
+        New-Item -ItemType Directory -Path $installerDir -Force | Out-Null
+        
+        # Run Inno Setup
+        Write-Host "Running Inno Setup..." -ForegroundColor Yellow
+        $InnoSetupPath = "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe"
+        if (-not (Test-Path $InnoSetupPath)) { 
+          $InnoSetupPath = "${env:ProgramFiles}\Inno Setup 6\iscc.exe" 
+        }
+        
+        if (Test-Path $InnoSetupPath) {
+          Write-Host "Using Inno Setup: $InnoSetupPath"
+          & $InnoSetupPath "setup.iss" /DAppVersion="${{ steps.version.outputs.VERSION }}" /O"$installerDir"
+          $innoResult = $LASTEXITCODE
+          Write-Host "Inno Setup exit code: $innoResult"
+          
+          # Check if installer was created
+          $installers = Get-ChildItem -Path $installerDir -Filter "*.exe" -ErrorAction SilentlyContinue
+          if ($installers) {
+            foreach ($installer in $installers) {
+              $sizeMB = [math]::Round($installer.Length / 1MB, 2)
+              Write-Host "✓ Created installer: $($installer.Name) ($sizeMB MB)" -ForegroundColor Green
+            }
+          } else {
+            Write-Warning "No installer files found in $installerDir"
+            Write-Host "Contents of installer directory:"
+            Get-ChildItem -Path $installerDir -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $_" }
+          }
+        } else {
+          Write-Error "Inno Setup compiler not found"
+          exit 1
+        }
+        
+        Write-Host "=== x64 Build Complete ===" -ForegroundColor Green
+      shell: pwsh
+    
+    - name: Manual Build Instructions (if CI fails)
+      if: steps.build_x64.outcome == 'failure'
+      run: |
+        Write-Host "========================================" -ForegroundColor Red
+        Write-Host "CI BUILD FAILED - Manual Build Required" -ForegroundColor Red
+        Write-Host "========================================" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "The WinUI application requires specific Windows SDK versions that may not be available in GitHub Actions."
+        Write-Host "To build the EXE installer manually:" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "1. Clone the repository locally on a Windows machine"
+        Write-Host "2. Ensure you have .NET 9 SDK and Visual Studio with Windows development tools"
+        Write-Host "3. Navigate to: FOLDER_NAME/EXTENSION_NAME/"
+        Write-Host "4. Run: .\build-exe.ps1 -Version ${{ steps.version.outputs.VERSION }}"
+        Write-Host "5. The installer will be created in: bin\Release\installer\"
+        Write-Host ""
+        Write-Host "Then upload the installer to GitHub Releases manually." -ForegroundColor Cyan
+        Write-Host ""
+      shell: pwsh
+    
+    - name: Build EXE installer (ARM64)
+      continue-on-error: true
+      id: build_arm64
+      run: |
+        Set-Location "FOLDER_NAME/EXTENSION_NAME"
+        
+        Write-Host "=== Building ARM64 version ===" -ForegroundColor Green
+        Write-Host "Version: ${{ steps.version.outputs.VERSION }}"
+        
+        # Build and publish ARM64
+        Write-Host "Running dotnet publish for ARM64..." -ForegroundColor Yellow
+        dotnet publish "EXTENSION_NAME.csproj" --configuration Release --runtime win-arm64 --self-contained true --output "bin\Release\win-arm64\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false -p:UseAppHost=true
+        
+        if ($LASTEXITCODE -ne 0) {
+          Write-Warning "dotnet publish ARM64 failed with exit code: $LASTEXITCODE"
+          # Don't exit here since ARM64 is optional
+        } else {
+          # Check published files
+          $publishDir = "bin\Release\win-arm64\publish"
+          if (Test-Path $publishDir) {
+            $fileCount = (Get-ChildItem -Path $publishDir -Recurse -File).Count
+            Write-Host "✓ Published $fileCount ARM64 files to $publishDir" -ForegroundColor Green
+          }
+        }
+        
+        Write-Host "=== ARM64 Build Complete ===" -ForegroundColor Green
+      shell: pwsh
+    
+    - name: List build artifacts
+      run: |
+        Write-Host "Build artifacts:"
+        Get-ChildItem -Path "FOLDER_NAME/EXTENSION_NAME/bin" -Recurse -File | ForEach-Object {
+          Write-Host "  $($_.FullName.Replace((Get-Location).Path, '.'))"
+        }
+      shell: pwsh
+    
+    - name: Upload x64 installer
+      if: steps.build_x64.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: EXTENSION_NAME-x64-installer
+        path: |
+          FOLDER_NAME/EXTENSION_NAME/bin/Release/installer/*.exe
+          FOLDER_NAME/EXTENSION_NAME/bin/Release/win-x64/publish/
+        if-no-files-found: error
+    
+    - name: Upload ARM64 installer  
+      if: steps.build_arm64.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: EXTENSION_NAME-arm64-installer
+        path: |
+          FOLDER_NAME/EXTENSION_NAME/bin/Release/installer/*.exe
+          FOLDER_NAME/EXTENSION_NAME/bin/Release/win-arm64/publish/
+        if-no-files-found: warn
+    
+    - name: Create GitHub Release (on successful build)  
+      if: steps.build_x64.outcome == 'success' && github.event.inputs.create_release == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: EXTENSION_NAME-v${{ steps.version.outputs.VERSION }}
+        name: "EXTENSION_NAME v${{ steps.version.outputs.VERSION }}"
+        body: |
+          ## What's New
+          
+          ${{ github.event.inputs.release_notes }}
+          
+          ## 📦 Installation
+          
+          **Download:** `EXTENSION_NAME-Setup-${{ steps.version.outputs.VERSION }}.exe`
+          
+          1. Download the installer from the Assets section below
+          2. Run the installer as Administrator  
+          3. The extension will be registered and available in Command Palette
+          
+          ---
+          *Generated automatically by GitHub Actions*
+        files: |
+          FOLDER_NAME/EXTENSION_NAME/bin/Release/installer/*.exe
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Create Legacy Release (on tag - for backward compatibility)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          FOLDER_NAME/EXTENSION_NAME/bin/Release/installer/*.exe
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Workflow Summary
+      if: always()
+      run: |
+        Write-Host "=== CmdPal DISPLAY_NAME Release Summary ===" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "Version: ${{ steps.version.outputs.VERSION }}" -ForegroundColor Yellow
+        Write-Host "x64 Build: $(if ('${{ steps.build_x64.outcome }}' -eq 'success') { '✅ Success' } else { '❌ Failed' })" -ForegroundColor $(if ('${{ steps.build_x64.outcome }}' -eq 'success') { 'Green' } else { 'Red' })
+        Write-Host "ARM64 Build: $(if ('${{ steps.build_arm64.outcome }}' -eq 'success') { '✅ Success' } else { '⚠️  Skipped/Failed' })" -ForegroundColor $(if ('${{ steps.build_arm64.outcome }}' -eq 'success') { 'Green' } else { 'Yellow' })
+        
+        if ('${{ steps.build_x64.outcome }}' -eq 'success') {
+          Write-Host ""
+          Write-Host "🎉 EXE Installer Created Successfully!" -ForegroundColor Green
+          Write-Host "📁 Artifacts uploaded to GitHub Actions" -ForegroundColor Green
+          
+          if ('${{ github.event.inputs.create_release }}' -eq 'true') {
+            Write-Host "🚀 GitHub Release created: EXTENSION_NAME-v${{ steps.version.outputs.VERSION }}" -ForegroundColor Green
+            Write-Host "📦 EXE installer available for download and automated submission" -ForegroundColor Green
+          } else {
+            Write-Host "ℹ️  No release created (create_release was false)" -ForegroundColor Yellow
+            Write-Host "Download artifacts manually or re-run with create_release=true" -ForegroundColor Yellow
+          }
+        } else {
+          Write-Host ""
+          Write-Host "❌ Build failed - check logs above for details" -ForegroundColor Red
+        }
+        Write-Host ""
+      shell: pwsh
