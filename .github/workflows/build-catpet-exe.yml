@@ -13,6 +13,16 @@ on:
         required: false
         default: 'false'
         type: string
+      create_release:
+        description: 'Create GitHub Release after successful build'
+        required: false
+        default: true
+        type: boolean
+      release_notes:
+        description: 'Release notes describing what is new in this version'
+        required: false
+        default: 'New release with latest updates and improvements.'
+        type: string
 
 jobs:
   build-exe:
@@ -329,7 +339,56 @@ jobs:
           CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/win-arm64/publish/
         if-no-files-found: warn
     
-    - name: Create Release (on tag)
+    - name: Create Git Tag and Release (on successful build)
+      if: steps.build_x64.outcome == 'success' && github.event.inputs.create_release == 'true'
+      run: |
+        $version = "${{ steps.version.outputs.VERSION }}"
+        $tagName = "CmdPalCatPetExtension-v$version"
+        
+        Write-Host "Creating Git tag: $tagName" -ForegroundColor Green
+        
+        # Configure Git
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Create and push tag
+        git tag -a "$tagName" -m "CmdPalCatPetExtension v$version - EXE Installer Release"
+        git push origin "$tagName"
+        
+        Write-Host "✓ Git tag created and pushed: $tagName" -ForegroundColor Green
+      shell: pwsh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Create GitHub Release (on successful build)  
+      if: steps.build_x64.outcome == 'success' && github.event.inputs.create_release == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: CmdPalCatPetExtension-v${{ steps.version.outputs.VERSION }}
+        name: "CmdPalCatPetExtension v${{ steps.version.outputs.VERSION }}"
+        body: |
+          ## What's New
+          
+          ${{ github.event.inputs.release_notes }}
+          
+          ## 📦 Installation
+          
+          **Download:** `CmdPalCatPetExtension-Setup-${{ steps.version.outputs.VERSION }}.exe`
+          
+          1. Download the installer from the Assets section below
+          2. Run the installer as Administrator  
+          3. The extension will be registered and available in Command Palette
+          
+          ---
+          *Generated automatically by GitHub Actions*
+        files: |
+          CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/installer/*.exe
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Create Legacy Release (on tag - for backward compatibility)
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
@@ -339,3 +398,31 @@ jobs:
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Workflow Summary
+      if: always()
+      run: |
+        Write-Host "=== CmdPal Cat Pet Extension Build Summary ===" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "Version: ${{ steps.version.outputs.VERSION }}" -ForegroundColor Yellow
+        Write-Host "x64 Build: $(if ('${{ steps.build_x64.outcome }}' -eq 'success') { '✅ Success' } else { '❌ Failed' })" -ForegroundColor $(if ('${{ steps.build_x64.outcome }}' -eq 'success') { 'Green' } else { 'Red' })
+        Write-Host "ARM64 Build: $(if ('${{ steps.build_arm64.outcome }}' -eq 'success') { '✅ Success' } else { '⚠️  Skipped/Failed' })" -ForegroundColor $(if ('${{ steps.build_arm64.outcome }}' -eq 'success') { 'Green' } else { 'Yellow' })
+        
+        if ('${{ steps.build_x64.outcome }}' -eq 'success') {
+          Write-Host ""
+          Write-Host "🎉 EXE Installer Created Successfully!" -ForegroundColor Green
+          Write-Host "📁 Artifacts uploaded to GitHub Actions" -ForegroundColor Green
+          
+          if ('${{ github.event.inputs.create_release }}' -eq 'true') {
+            Write-Host "🚀 GitHub Release created: CmdPalCatPetExtension-v${{ steps.version.outputs.VERSION }}" -ForegroundColor Green
+            Write-Host "📦 EXE installer available for download and automated submission" -ForegroundColor Green
+          } else {
+            Write-Host "ℹ️  No release created (create_release was false)" -ForegroundColor Yellow
+            Write-Host "Download artifacts manually or re-run with create_release=true" -ForegroundColor Yellow
+          }
+        } else {
+          Write-Host ""
+          Write-Host "❌ Build failed - check logs above for details" -ForegroundColor Red
+        }
+        Write-Host ""
+      shell: pwsh
