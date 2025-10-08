@@ -206,6 +206,8 @@ jobs:
       shell: pwsh
     
     - name: Build EXE installer (ARM64)
+      continue-on-error: true
+      id: build_arm64
       run: |
         Set-Location "CmdPalCatPetExtension/CmdPalCatPetExtension"
         & .\build-exe.ps1 -Configuration Release -Version "${{ steps.version.outputs.VERSION }}" -Platform arm64
@@ -220,6 +222,7 @@ jobs:
       shell: pwsh
     
     - name: Upload x64 installer
+      if: steps.build_x64.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: CmdPalCatPetExtension-x64-installer
@@ -229,6 +232,7 @@ jobs:
         if-no-files-found: error
     
     - name: Upload ARM64 installer  
+      if: steps.build_arm64.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: CmdPalCatPetExtension-arm64-installer
