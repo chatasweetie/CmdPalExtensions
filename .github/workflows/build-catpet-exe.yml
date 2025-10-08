@@ -30,6 +30,13 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
     
+    - name: Install Windows SDK and Workloads
+      run: |
+        Write-Host "Installing required .NET workloads..."
+        dotnet workload install maui-windows --skip-manifest-update
+        Write-Host "Workload installation completed"
+      shell: pwsh
+    
     - name: Generate infrastructure files
       run: |
         New-Item -Path "CmdPalCatPetExtension/CmdPalCatPetExtension" -ItemType Directory -Force | Out-Null
@@ -57,7 +64,7 @@ jobs:
           '    if (Test-Path "$ProjectDir\obj") { Remove-Item -Path "$ProjectDir\obj" -Recurse -Force -ErrorAction SilentlyContinue }',
           '} catch { Write-Warning "Could not clean obj directory completely" }',
           'dotnet restore "$ProjectDir\CmdPalCatPetExtension.csproj"',
-          'dotnet publish "$ProjectDir\CmdPalCatPetExtension.csproj" --configuration $Configuration --framework "net9.0-windows10.0.22621.0" --runtime "win-$Platform" --self-contained true --output "$ProjectDir\bin\$Configuration\net9.0-windows10.0.22621.0\win-$Platform\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false',
+          'dotnet publish "$ProjectDir\CmdPalCatPetExtension.csproj" --configuration $Configuration --runtime "win-$Platform" --self-contained true --output "$ProjectDir\bin\$Configuration\win-$Platform\publish" -p:PublishSingleFile=false -p:PublishTrimmed=false -p:UseAppHost=true',
           'if ($LASTEXITCODE -ne 0) { throw "Build failed" }',
           'Write-Host "Build completed!" -ForegroundColor Green',
           '$InnoSetupPath = "${env:ProgramFiles(x86)}\Inno Setup 6\iscc.exe"',
@@ -100,7 +107,7 @@ jobs:
           'Name: "english"; MessagesFile: "compiler:Default.isl"',
           '',
           '[Files]',
-          'Source: "bin\Release\net9.0-windows10.0.22621.0\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs',
+          'Source: "bin\Release\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs',
           '',
           '[Icons]',
           'Name: "{group}\Cat Pet Extension"; Filename: "{app}\CmdPalCatPetExtension.exe"',
@@ -186,7 +193,7 @@ jobs:
         name: CmdPalCatPetExtension-x64-installer
         path: |
           CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/installer/*.exe
-          CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/net9.0-windows10.0.22621.0/win-x64/publish/
+          CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/win-x64/publish/
         if-no-files-found: error
     
     - name: Upload ARM64 installer  
@@ -195,7 +202,7 @@ jobs:
         name: CmdPalCatPetExtension-arm64-installer
         path: |
           CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/installer/*.exe
-          CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/net9.0-windows10.0.22621.0/win-arm64/publish/
+          CmdPalCatPetExtension/CmdPalCatPetExtension/bin/Release/win-arm64/publish/
         if-no-files-found: warn
     
     - name: Create Release (on tag)
