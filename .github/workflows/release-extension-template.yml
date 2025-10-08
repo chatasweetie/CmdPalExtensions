@@ -17,7 +17,40 @@
 #       - Release File Paths (lines 372, 383)
 #       - Manual Build Instructions (line 272)
 #       - License File Path (line 118)
-# 9. Test the workflow with a manual trigger
+# 9. Run workflow with a manual trigger: gh workflow run release-extension.yml --ref main -f create_release=true -f "release_notes= **First Release of <ExensionName> Extension for Command Palette** The inaugural release of the <ExensionName> for Command Palette..."
+
+# How it works:
+# - Setup Phase
+#     - Checks out code from GitHub repository
+#     - Installs .NET 9 SDK and MSBuild tools
+#     - Scans available Windows SDKs (skips workload installation to avoid conflicts)
+# - File Generation Phase
+#     - Creates build infrastructure files:
+#     - Generates build-exe.ps1 PowerShell script
+#     - Generates setup.iss Inno Setup configuration file
+#     - Installs Inno Setup 6 via Chocolatey package manager
+# - Version Detection Phase
+#     - Extracts version number from project file (AppxPackageVersion) or uses manual input
+#     - Restores NuGet packages for the solution
+# - Build Phase
+#     - Builds x64 EXE installer:
+#         - Cleans previous build artifacts (bin/, obj/)
+#         - Runs dotnet publish for win-x64 runtime
+#         - Creates self-contained executable
+#         - Runs Inno Setup compiler to create installer EXE
+#         - Verifies installer was created successfully
+#     - Builds ARM64 version (optional, continues on failure)
+#         - Same process but for win-arm64 runtime
+# - Artifact & Release Phase
+#     - Uploads build artifacts to GitHub Actions (both x64 and ARM64 installers)
+#     - Creates GitHub Release (if enabled):
+#         - Creates git tag with version number
+#         - Uploads installer EXE to release assets
+#         - Adds custom release notes
+#     - Provides manual build instructions if CI build fails
+# - Summary Phase
+#     - Displays build summary with success/failure status for each architecture
+
 
 name: EXTENSION_NAME - Build EXE Installer and Create Release
 
