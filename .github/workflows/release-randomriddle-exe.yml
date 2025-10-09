@@ -1,0 +1,89 @@
+name: Random Riddle Extension - Build EXE Installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (leave empty to auto-detect)'
+        required: false
+        type: string
+      release_notes:
+        description: 'What is new in this version'
+        required: false
+        default: 'New release with latest updates and improvements.'
+        type: string
+
+jobs:
+  build:
+    runs-on: windows-2022
+    permissions:
+      contents: write
+      actions: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Install Inno Setup
+      run: choco install innosetup -y --no-progress
+      shell: pwsh
+    
+    - name: Get version from project
+      id: version
+      run: |
+        if ("${{ github.event.inputs.version }}" -ne "") {
+          $version = "${{ github.event.inputs.version }}"
+        } else {
+          $projectFile = "CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension.csproj"
+          $xml = [xml](Get-Content $projectFile)
+          $version = $xml.Project.PropertyGroup.AppxPackageVersion | Select-Object -First 1
+          if (-not $version) { throw "Version not found in project file" }
+        }
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        Write-Host "Using version: $version"
+      shell: pwsh
+    
+    - name: Build EXE installer using PowerShell script
+      run: |
+        Set-Location "CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension"
+        .\build-exe.ps1 -Version "${{ steps.version.outputs.VERSION }}"
+      shell: pwsh
+    
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: RandomRiddleExtension-installer
+        path: CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension/bin/Release/installer/*.exe
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: RandomRiddle-v${{ steps.version.outputs.VERSION }}
+        name: "Random Riddle Extension v${{ steps.version.outputs.VERSION }}"
+        body: |
+          ## 🎲 Random Riddle Extension
+          
+          ${{ github.event.inputs.release_notes }}
+          
+          ## 📦 Installation
+          
+          1. Download `CmdPalRandomRiddleExtension-Setup-${{ steps.version.outputs.VERSION }}.exe`
+          2. Run as Administrator
+          3. Extension will be available in Command Palette
+        files: CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension/bin/Release/installer/*.exe
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build summary
+      run: |
+        Write-Host "🎉 Random Riddle Extension Release Complete!" -ForegroundColor Green
+        Write-Host "Version: ${{ steps.version.outputs.VERSION }}" -ForegroundColor Yellow
+        Write-Host "📁 Installer uploaded to GitHub Release" -ForegroundColor Green
+      shell: pwsh
