@@ -31,7 +31,8 @@ dotnet publish $ProjectFile `
     --configuration $Configuration `
     --runtime "win-$Platform" `
     --self-contained true `
-    --output "$ProjectDir\bin\$Configuration\win-$Platform\publish"
+    --output "$ProjectDir\bin\$Configuration\win-$Platform\publish" `
+    -p:PublishProfile=""
 
 if ($LASTEXITCODE -ne 0) { 
     throw "Build failed with exit code: $LASTEXITCODE" 
