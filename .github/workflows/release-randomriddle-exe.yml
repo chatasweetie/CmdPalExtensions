@@ -48,17 +48,25 @@ jobs:
         Write-Host "Using version: $version"
       shell: pwsh
     
-    - name: Build EXE installer using PowerShell script
+    - name: Build EXE installers (x64 and ARM64)
       run: |
         Set-Location "CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension"
-        .\build-exe.ps1 -Version "${{ steps.version.outputs.VERSION }}"
+        .\build-exe.ps1 -Version "${{ steps.version.outputs.VERSION }}" -Platforms @("x64", "arm64")
       shell: pwsh
     
-    - name: Upload installer artifact
+    - name: Upload x64 installer artifact
       uses: actions/upload-artifact@v4
       with:
-        name: RandomRiddleExtension-installer
-        path: CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension/bin/Release/installer/*.exe
+        name: RandomRiddleExtension-x64-installer
+        path: CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension/bin/Release/installer/*-x64.exe
+        if-no-files-found: error
+    
+    - name: Upload ARM64 installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: RandomRiddleExtension-arm64-installer
+        path: CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension/bin/Release/installer/*-arm64.exe
+        if-no-files-found: warn
     
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
@@ -72,9 +80,18 @@ jobs:
           
           ## 📦 Installation
           
-          1. Download `CmdPalRandomRiddleExtension-Setup-${{ steps.version.outputs.VERSION }}.exe`
+          **For Intel/AMD (x64) systems:**
+          1. Download `CmdPalRandomRiddleExtension-Setup-${{ steps.version.outputs.VERSION }}-x64.exe`
           2. Run as Administrator
           3. Extension will be available in Command Palette
+          
+          **For ARM64 systems (Windows on ARM):**
+          1. Download `CmdPalRandomRiddleExtension-Setup-${{ steps.version.outputs.VERSION }}-arm64.exe`
+          2. Run as Administrator
+          3. Extension will be available in Command Palette
+          
+          ---
+          *Both x64 and ARM64 versions are included in this release.*
         files: CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension/bin/Release/installer/*.exe
         draft: false
         prerelease: false
