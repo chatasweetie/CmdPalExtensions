@@ -16,23 +16,19 @@ A simple [Command Palette extension](https://learn.microsoft.com/en-us/windows/p
 
 > **Note:** This extension requires [Microsoft PowerToys](https://apps.microsoft.com/detail/xp89dcgq3k6vld) to be installed.
 
-### Microsoft Store installation (recommended)
+### Install from Microsoft Store
 
-[Get it from Microsoft Store](https://apps.microsoft.com/detail/9ppntdcd5s8z)
+Click to open the listing and install:
 
-<!-- ### Alternative installation methods
+[![Get it from Microsoft Store](https://img.shields.io/badge/Microsoft%20Store-Install-blue?logo=windows)](https://apps.microsoft.com/detail/9ppntdcd5s8z)
 
-**Via Winget:**
+### Install with WinGet
+
+Copy and run this command in PowerShell:
 
 ```powershell
 winget install JessicaDEarleyCha.CmdPalRandomRiddleExtension
 ```
-
-**Manual MSIX installation:**
-
-1. Download the latest MSIX package from [Releases](https://github.com/chatasweetie/CmdPalExtensions/releases)
-2. Right-click the MSIX file and select "Install"
-3. Follow the installation prompts -->
 
 ## How It Works
 

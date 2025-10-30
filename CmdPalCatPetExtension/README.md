@@ -14,15 +14,21 @@ A playful, virtual cat you can adopt and care for from the Microsoft Command Pal
 
 ## 📦 Installation
 
-### Via WinGet (Recommended)
+> **Note:** This extension requires [Microsoft PowerToys](https://apps.microsoft.com/detail/xp89dcgq3k6vld) to be installed.
+
+### Install from Microsoft Store
+
+Click to open the listing and install:
+
+[![Get it from Microsoft Store](https://img.shields.io/badge/Microsoft%20Store-Install-blue?logo=windows)](https://apps.microsoft.com/detail/9mwhs2r9t35v)
+
+### Install with WinGet
+
+Copy and run this command in PowerShell:
+
 ```powershell
-winget install JessicaDeneEarley-Cha.CmdPalCatPetExtension
+winget install JessicaDeneEarley-Cha.CatPetExtension
 ```
-
-### Via Microsoft Store
-Search for "Cat Pet Extension" in the Microsoft Store or visit the [Store listing](https://apps.microsoft.com/store/detail/cat-pet-extension/9P7JQZQZQZQZ).
-
-
 
 ## ✨ Features
 

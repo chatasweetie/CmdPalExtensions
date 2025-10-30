@@ -12,27 +12,21 @@ A simple Command Palette extension that provides bite-sized cat entertainment â€
 
 ## Installation
 
-> **Note:** This extension is built as a Command Palette extension and requires [Microsoft PowerToys](https://learn.microsoft.com/en-us/windows/powertoys/command-palette/extensibility-overview) (and the Command Palette host) to be installed for use.
+> **Note:** This extension requires [Microsoft PowerToys](https://apps.microsoft.com/detail/xp89dcgq3k6vld) to be installed.
 
-### Microsoft Store installation (recommended)
+### Install from Microsoft Store
 
-When published, the recommended route is via the Microsoft Store so users can install and update automatically from there.
+Click to open the listing and install:
 
-<!--
-### Alternative installation methods
+[![Get it from Microsoft Store](https://img.shields.io/badge/Microsoft%20Store-Install-blue?logo=windows)](https://apps.microsoft.com/detail/9nmk0m2d18cq)
 
-**Via Winget:**
+### Install with WinGet
+
+Copy and run this command in PowerShell:
 
 ```powershell
-winget install JessicaDEarleyCha.CmdPalCatFunExtension
+winget install JessicaDeneEarley-Cha.CatFunExtension
 ```
-
-**Manual MSIX installation:**
-
-1. Download the latest MSIX package from the repository Releases.
-2. Right-click the MSIX file and select "Install".
-3. Follow the installation prompts.
--->
 
 ## How It Works
 
