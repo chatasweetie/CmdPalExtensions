@@ -65,7 +65,7 @@ foreach ($Platform in $Platforms) {
     if ($Platform -eq "arm64") {
         $setupScript = $setupScript -replace '(\[Setup\][^\[]*)(MinVersion=)', "`$1ArchitecturesAllowed=arm64`r`nArchitecturesInstallIn64BitMode=arm64`r`n`$2"
     } else {
-        $setupScript = $setupScript -replace '(\[Setup\][^\[]*)(MinVersion=)', "`$1ArchitecturesAllowed=x64 compatible`r`nArchitecturesInstallIn64BitMode=x64 compatible`r`n`$2"
+        $setupScript = $setupScript -replace '(\[Setup\][^\[]*)(MinVersion=)', "`$1ArchitecturesAllowed=x64compatible`r`nArchitecturesInstallIn64BitMode=x64compatible`r`n`$2"
     }
     
     $setupScript | Out-File -FilePath "$ProjectDir\setup-$Platform.iss" -Encoding UTF8
