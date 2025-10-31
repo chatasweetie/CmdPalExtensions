@@ -20,6 +20,9 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.name, 'Random Riddle Extension')
     runs-on: windows-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
       - name: Get release info
         id: release
         run: |
