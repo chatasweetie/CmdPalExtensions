@@ -72,26 +72,34 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: RandomRiddle-v${{ steps.version.outputs.VERSION }}
-        name: "Random Riddle Extension v${{ steps.version.outputs.VERSION }}"
+        name: "Random Riddle Extension ${{ steps.version.outputs.VERSION }}"
         body: |
-          ## 🎲 Random Riddle Extension
+          # Random Riddle Extension ${{ steps.version.outputs.VERSION }}
           
+          ## What's New
           ${{ github.event.inputs.release_notes }}
           
-          ## 📦 Installation
+          ## System Requirements
+          - Windows 10 version 2004 or later, or Windows 11
+          - Microsoft PowerToys with Command Palette enabled
           
-          **For Intel/AMD (x64) systems:**
-          1. Download `CmdPalRandomRiddleExtension-Setup-${{ steps.version.outputs.VERSION }}-x64.exe`
-          2. Run as Administrator
-          3. Extension will be available in Command Palette
+          ## Installation Instructions
           
-          **For ARM64 systems (Windows on ARM):**
-          1. Download `CmdPalRandomRiddleExtension-Setup-${{ steps.version.outputs.VERSION }}-arm64.exe`
-          2. Run as Administrator
-          3. Extension will be available in Command Palette
+          Download the installer for your system architecture:
+          
+          - **x64 (Intel/AMD)**: `CmdPalRandomRiddleExtension-Setup-${{ steps.version.outputs.VERSION }}-x64.exe`
+          - **ARM64 (Windows on ARM)**: `CmdPalRandomRiddleExtension-Setup-${{ steps.version.outputs.VERSION }}-arm64.exe`
+          
+          1. Download the appropriate installer from the Assets section below
+          2. Run the installer with administrator privileges
+          3. The extension will be registered and available in Command Palette
+          
+          ## Known Issues
+          - None reported for this version
           
           ---
-          *Both x64 and ARM64 versions are included in this release.*
+          
+          For more information, visit the [project repository](https://github.com/chatasweetie/CmdPalExtensions).
         files: CmdPalRandomRiddleExtension/CmdPalRandomRiddleExtension/bin/Release/installer/*.exe
         draft: false
         prerelease: false

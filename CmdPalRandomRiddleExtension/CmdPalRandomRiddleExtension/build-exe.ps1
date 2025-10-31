@@ -55,17 +55,18 @@ foreach ($Platform in $Platforms) {
     # Update version
     $setupScript = $setupTemplate -replace '#define AppVersion ".*"', "#define AppVersion `"$Version`""
     
-    # Update architecture settings
-    if ($Platform -eq "arm64") {
-        $setupScript = $setupScript -replace '(?m)^(\[Setup\].*?)(?=\[)', "`$1`nArchitecturesAllowed=arm64`nArchitecturesInstallIn64BitMode=arm64`n"
-        $setupScript = $setupScript -replace 'OutputBaseFilename=([^-\r\n]+)', "OutputBaseFilename=`$1-$Platform"
-    } else {
-        $setupScript = $setupScript -replace '(?m)^(\[Setup\].*?)(?=\[)', "`$1`nArchitecturesAllowed=x64 compatible`nArchitecturesInstallIn64BitMode=x64 compatible`n"
-        $setupScript = $setupScript -replace 'OutputBaseFilename=([^-\r\n]+)', "OutputBaseFilename=`$1-$Platform"
-    }
+    # Update output filename to include platform suffix
+    $setupScript = $setupScript -replace 'OutputBaseFilename=(.*?)\{#AppVersion\}', "OutputBaseFilename=`$1{#AppVersion}-$Platform"
     
     # Update source path for the platform
     $setupScript = $setupScript -replace 'Source: "bin\\Release\\win-x64\\publish', "Source: `"bin\Release\win-$Platform\publish"
+    
+    # Add architecture settings after [Setup] section
+    if ($Platform -eq "arm64") {
+        $setupScript = $setupScript -replace '(\[Setup\][^\[]*)(MinVersion=)', "`$1ArchitecturesAllowed=arm64`r`nArchitecturesInstallIn64BitMode=arm64`r`n`$2"
+    } else {
+        $setupScript = $setupScript -replace '(\[Setup\][^\[]*)(MinVersion=)', "`$1ArchitecturesAllowed=x64 compatible`r`nArchitecturesInstallIn64BitMode=x64 compatible`r`n`$2"
+    }
     
     $setupScript | Out-File -FilePath "$ProjectDir\setup-$Platform.iss" -Encoding UTF8
 
