@@ -4,15 +4,6 @@ on:
   release:
     types: [published]
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version number (e.g., 0.0.2.0)'
-        required: true
-        type: string
-      release_tag:
-        description: 'Release tag (e.g., RandomRiddle-v0.0.2.0)'
-        required: true
-        type: string
 
 jobs:
   update-winget:
@@ -23,14 +14,10 @@ jobs:
       - name: Get release info
         id: release
         run: |
-          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
-            echo "VERSION=${{ inputs.version }}" >> $env:GITHUB_OUTPUT
-            echo "TAG=${{ inputs.release_tag }}" >> $env:GITHUB_OUTPUT
-          } else {
-            $version = "${{ github.event.release.tag_name }}" -replace "RandomRiddle-v", ""
-            echo "VERSION=$version" >> $env:GITHUB_OUTPUT
-            echo "TAG=${{ github.event.release.tag_name }}" >> $env:GITHUB_OUTPUT
-          }
+          # Extract version and tag from the release event
+          $version = "${{ github.event.release.tag_name }}" -replace "RandomRiddle-v", ""
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "TAG=${{ github.event.release.tag_name }}" >> $env:GITHUB_OUTPUT
 
       - name: Install wingetcreate
         run: |
