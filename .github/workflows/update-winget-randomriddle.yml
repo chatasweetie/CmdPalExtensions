@@ -4,6 +4,15 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 0.0.2.0)'
+        required: false
+        type: string
+      release_tag:
+        description: 'Release tag (e.g., RandomRiddle-v0.0.2.0)'
+        required: false
+        type: string
 
 jobs:
   update-winget:
@@ -14,10 +23,24 @@ jobs:
       - name: Get release info
         id: release
         run: |
-          # Extract version and tag from the release event
-          $version = "${{ github.event.release.tag_name }}" -replace "RandomRiddle-v", ""
-          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
-          echo "TAG=${{ github.event.release.tag_name }}" >> $env:GITHUB_OUTPUT
+          if ("${{ github.event_name }}" -eq "workflow_dispatch" -and "${{ inputs.version }}" -ne "") {
+            # Use provided inputs for manual trigger
+            echo "VERSION=${{ inputs.version }}" >> $env:GITHUB_OUTPUT
+            echo "TAG=${{ inputs.release_tag }}" >> $env:GITHUB_OUTPUT
+          } elseif ("${{ github.event_name }}" -eq "release") {
+            # Extract from release event
+            $version = "${{ github.event.release.tag_name }}" -replace "RandomRiddle-v", ""
+            echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+            echo "TAG=${{ github.event.release.tag_name }}" >> $env:GITHUB_OUTPUT
+          } else {
+            # Get latest release
+            $latestRelease = gh release list --limit 1 --json tagName,name | ConvertFrom-Json | Where-Object { $_.name -like "Random Riddle Extension*" }
+            $version = $latestRelease.tagName -replace "RandomRiddle-v", ""
+            echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+            echo "TAG=$($latestRelease.tagName)" >> $env:GITHUB_OUTPUT
+          }
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install wingetcreate
         run: |
